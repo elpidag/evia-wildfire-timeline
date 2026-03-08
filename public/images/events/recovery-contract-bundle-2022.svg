@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Recovery contract bundle visual marker</title>
+  <desc id="desc">Editorial diagram marker for the 2022 recovery works procurement bundle event.</desc>
+  <rect width="1200" height="675" fill="#f4efe6"/>
+  <rect x="102" y="92" width="996" height="491" fill="#fcf8f1" stroke="#c6bdae" stroke-width="3"/>
+  <rect x="170" y="182" width="420" height="74" fill="#8f7a45"/>
+  <rect x="170" y="286" width="420" height="74" fill="#8f7a45"/>
+  <rect x="170" y="390" width="420" height="74" fill="#8f7a45"/>
+  <rect x="638" y="182" width="392" height="74" fill="#5a5f74"/>
+  <rect x="638" y="286" width="392" height="74" fill="#5a5f74"/>
+  <rect x="638" y="390" width="392" height="74" fill="#5a5f74"/>
+  <text x="170" y="148" fill="#3f3933" font-family="Georgia, serif" font-size="54">2022 Recovery Contract Bundle</text>
+  <text x="170" y="536" fill="#5d554d" font-family="Helvetica, Arial, sans-serif" font-size="30">Procurement package marker for post-fire reconstruction works</text>
+</svg>

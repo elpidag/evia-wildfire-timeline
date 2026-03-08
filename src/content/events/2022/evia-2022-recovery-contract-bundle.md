@@ -17,7 +17,9 @@ tags:
   - reconstruction
 sourceRefs:
   - src-recovery-contract-2022-06
-imageRefs: []
+imageRefs:
+  - img-recovery-contract-bundle-2022
+coverImage: img-recovery-contract-bundle-2022
 confidence: medium
 verificationStatus: partially-verified
 mapViewport:

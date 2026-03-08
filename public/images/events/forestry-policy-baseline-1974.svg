@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Forestry policy baseline visual marker</title>
+  <desc id="desc">Editorial diagram marker for the 1974 forestry policy baseline event.</desc>
+  <rect width="1200" height="675" fill="#f4efe6"/>
+  <rect x="92" y="98" width="1016" height="479" fill="#fbf7f0" stroke="#c8c0b2" stroke-width="3"/>
+  <line x1="140" y1="520" x2="1060" y2="520" stroke="#7a7368" stroke-width="6"/>
+  <line x1="280" y1="520" x2="280" y2="248" stroke="#8f2f23" stroke-width="18"/>
+  <line x1="500" y1="520" x2="500" y2="292" stroke="#8f2f23" stroke-width="18"/>
+  <line x1="720" y1="520" x2="720" y2="216" stroke="#8f2f23" stroke-width="18"/>
+  <line x1="940" y1="520" x2="940" y2="334" stroke="#8f2f23" stroke-width="18"/>
+  <text x="140" y="178" fill="#403a35" font-family="Georgia, serif" font-size="54">1974 Forestry Policy Baseline</text>
+  <text x="140" y="238" fill="#605850" font-family="Helvetica, Arial, sans-serif" font-size="30">Institutional reference marker for long-duration governance context</text>
+</svg>

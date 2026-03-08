@@ -65,8 +65,8 @@ function getDomain(events: TimelineEvent[]): [Date, Date] {
   const startExtent = extent(events, (event) => event.startTs);
   const endExtent = extent(events, (event) => event.endTs ?? event.startTs);
 
-  const minTs = startExtent[0] ?? Date.UTC(1970, 0, 1);
-  const maxTs = endExtent[1] ?? Date.now();
+  const minTs = Math.min(startExtent[0] ?? Date.UTC(1970, 0, 1), Date.UTC(1970, 0, 1));
+  const maxTs = Math.max(endExtent[1] ?? Date.now(), Date.now());
 
   const span = Math.max(86_400_000, maxTs - minTs);
   const pad = Math.max(86_400_000 * 20, span * 0.04);
