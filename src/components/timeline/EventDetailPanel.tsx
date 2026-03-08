@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+import { useMemo } from 'react';
 import { getCategoryColor, getCategoryLabel } from '@/lib/timeline/categories';
 import type { MediaLookup, SourceLookup, TimelineEvent } from '@/lib/timeline/types';
 
@@ -44,17 +44,18 @@ export default function EventDetailPanel({ selectedEvent, sourcesById, mediaById
   if (!selectedEvent) {
     return (
       <aside className="detail-panel" aria-label="Event detail panel" aria-live="polite">
-        <p className="detail-placeholder">Select an event to inspect its details.</p>
+        <p className="detail-placeholder">Select an event to inspect images, summary, legend, and source links.</p>
       </aside>
     );
   }
 
   const bodyParagraphs = splitBody(selectedEvent.body);
+  const leadText = bodyParagraphs[0] ?? '';
+  const visibleImages = images.slice(0, 4);
 
   return (
     <aside className="detail-panel" aria-label="Event detail panel" aria-live="polite">
       <header className="detail-header">
-        <p className="detail-eyebrow">Event detail</p>
         <h2>{selectedEvent.title}</h2>
         <p className="detail-date">{selectedEvent.displayDate}</p>
         <span
@@ -68,85 +69,41 @@ export default function EventDetailPanel({ selectedEvent, sourcesById, mediaById
         </span>
       </header>
 
-      <section className="detail-section" aria-label="Summary">
-        <h3>Summary</h3>
-        <p>{selectedEvent.summary}</p>
-      </section>
-
-      <section className="detail-section" aria-label="Commentary">
-        <h3>Commentary</h3>
-        {bodyParagraphs.length > 0 ? (
-          bodyParagraphs.map((paragraph, index) => <p key={`${selectedEvent.id}-body-${index}`}>{paragraph}</p>)
-        ) : (
-          <p>No extended commentary available for this event.</p>
-        )}
-      </section>
-
-      <section className="detail-section" aria-label="Actors and places">
-        <h3>Linked actors</h3>
-        <ul>
-          {selectedEvent.actorLabels.map((actor) => (
-            <li key={actor.id}>{actor.name}</li>
-          ))}
-        </ul>
-
-        <h3>Linked places</h3>
-        <ul>
-          {selectedEvent.placeLabels.map((place) => (
-            <li key={place.id}>{place.name}</li>
-          ))}
-        </ul>
-
-        {selectedEvent.tags.length > 0 ? (
-          <>
-            <h3>Tags</h3>
-            <ul>
-              {selectedEvent.tags.map((tag) => (
-                <li key={tag}>{tag}</li>
+      <div className="detail-top-grid">
+        <section className="detail-media-column" aria-label="Event images">
+          {visibleImages.length > 0 ? (
+            <div className="detail-image-grid detail-image-grid--primary">
+              {visibleImages.map((image) => (
+                <figure key={image.id} className="detail-figure">
+                  <img src={image.file} alt={image.alt} loading="lazy" />
+                </figure>
               ))}
-            </ul>
-          </>
-        ) : null}
-      </section>
+            </div>
+          ) : (
+            <p className="detail-empty-block">No linked images available for this event.</p>
+          )}
+        </section>
 
-      <section className="detail-section" aria-label="Sources">
-        <h3>Sources</h3>
-        {sources.length > 0 ? (
-          <ol className="detail-source-list">
-            {sources.map((source) => (
-              <li key={source.id}>
-                <a href={source.url} target="_blank" rel="noreferrer">
-                  {source.title}
+        <section className="detail-text-column" aria-label="Summary and source links">
+          <h3>Summary</h3>
+          <p>{selectedEvent.summary}</p>
+          {leadText ? <p>{leadText}</p> : null}
+
+          <h3>Source tags</h3>
+          {sources.length > 0 ? (
+            <div className="detail-source-tags">
+              {sources.map((source) => (
+                <a key={source.id} href={source.url} target="_blank" rel="noreferrer" className="source-tag">
+                  {source.publisher}
                 </a>
-                <p className="detail-source-meta">
-                  {source.publisher} {source.date ? `(${source.date})` : ''}
-                </p>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p>No source references available for this event.</p>
-        )}
-      </section>
+              ))}
+            </div>
+          ) : (
+            <p className="detail-empty-block">No source links available for this event.</p>
+          )}
+        </section>
+      </div>
 
-      <section className="detail-section" aria-label="Images">
-        <h3>Images</h3>
-        {images.length > 0 ? (
-          <div className="detail-image-grid">
-            {images.map((image) => (
-              <figure key={image.id} className="detail-figure">
-                <img src={image.file} alt={image.alt} loading="lazy" />
-                <figcaption>
-                  <p>{image.caption}</p>
-                  <p className="detail-image-credit">{image.credit}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <p>No linked images available for this event.</p>
-        )}
-      </section>
     </aside>
   );
 }

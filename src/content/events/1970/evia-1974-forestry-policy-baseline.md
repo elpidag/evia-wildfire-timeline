@@ -17,7 +17,9 @@ tags:
   - forestry
 sourceRefs:
   - src-forestry-1974
-imageRefs: []
+imageRefs:
+  - img-forestry-policy-baseline-1974
+coverImage: img-forestry-policy-baseline-1974
 confidence: medium
 verificationStatus: partially-verified
 relatedEvents: []

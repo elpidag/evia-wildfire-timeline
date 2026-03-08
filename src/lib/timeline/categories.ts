@@ -50,6 +50,12 @@ const categoryNameMap: Record<TimelineEvent['category'], string> = {
 const fallbackColor = '#6f6a61';
 
 export const categoryOrder: TimelineEvent['category'][] = [...categoryValues];
+export type CategorySymbol = 'circle' | 'square' | 'diamond' | 'triangle';
+
+const symbolCycle: CategorySymbol[] = ['circle', 'square', 'diamond', 'triangle'];
+const categorySymbolMap: Record<TimelineEvent['category'], CategorySymbol> = Object.fromEntries(
+  categoryOrder.map((category, index) => [category, symbolCycle[index % symbolCycle.length]])
+) as Record<TimelineEvent['category'], CategorySymbol>;
 
 export function getCategoryColor(category: TimelineEvent['category']): string {
   return categoryPalette[category] ?? fallbackColor;
@@ -59,3 +65,6 @@ export function getCategoryLabel(category: TimelineEvent['category']): string {
   return categoryNameMap[category] ?? category;
 }
 
+export function getCategorySymbol(category: TimelineEvent['category']): CategorySymbol {
+  return categorySymbolMap[category] ?? 'circle';
+}

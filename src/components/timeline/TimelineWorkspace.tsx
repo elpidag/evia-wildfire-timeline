@@ -15,7 +15,7 @@ import {
 } from '@/lib/timeline';
 import D3Timeline from './D3Timeline';
 import EventDetailPanel from './EventDetailPanel';
-import TimelineFilters from './TimelineFilters';
+import TimelineLegend from './TimelineLegend';
 
 const LazyEventMapPanel = lazy(() => import('./EventMapPanel'));
 
@@ -45,6 +45,7 @@ function filtersEqual(a: TimelineFilterState, b: TimelineFilterState): boolean {
 }
 
 export default function TimelineWorkspace() {
+  const showMap = false;
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [filters, setFilters] = useState<TimelineFilterState>(() => createEmptyFilters());
   const [sourcesById, setSourcesById] = useState<SourceLookup>({});
@@ -95,7 +96,6 @@ export default function TimelineWorkspace() {
         setEvents(resources.events);
         setSourcesById(resources.sourcesById);
         setMediaById(resources.mediaById);
-        setSelectedEventId((previous) => previous ?? resources.events[0]?.id ?? null);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -142,7 +142,7 @@ export default function TimelineWorkspace() {
         return previous;
       }
 
-      return filteredEvents[0].id;
+      return null;
     });
   }, [filteredEvents, isLoading]);
 
@@ -196,24 +196,11 @@ export default function TimelineWorkspace() {
   return (
     <TimelineSelectionContext.Provider value={selectionState}>
       <section className="timeline-workspace" aria-label="Timeline workspace">
-        <TimelineFilters
-          filters={filters}
-          options={filterOptions}
-          totalCount={events.length}
-          resultCount={filteredEvents.length}
-          onChange={(next) => setFilters(next)}
-          onReset={() => setFilters(createEmptyFilters())}
-        />
-
-        {filteredEvents.length === 0 ? (
-          <section className="timeline-empty-state" aria-live="polite">
-            <h2>No events match these filters</h2>
-            <p>Try broadening the selected category, actor, place, tag, or date range.</p>
-            <button type="button" className="timeline-button" onClick={() => setFilters(createEmptyFilters())}>
-              Clear all filters
-            </button>
-          </section>
-        ) : null}
+        <div className="detail-slot" aria-live="polite">
+          {selectedEvent ? (
+            <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
+          ) : null}
+        </div>
 
         <D3Timeline
           events={filteredEvents}
@@ -221,17 +208,19 @@ export default function TimelineWorkspace() {
           onSelectEvent={(eventId) => setSelectedEventId(eventId)}
         />
 
-        <div className="workspace-panels" aria-label="Event detail and map panels">
-          <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
-          <Suspense
-            fallback={
-              <section className="map-panel" aria-label="Map panel loading state" aria-live="polite">
-                <p>Loading map module...</p>
-              </section>
-            }
-          >
-            <LazyEventMapPanel selectedEvent={selectedEvent} events={filteredEvents} />
-          </Suspense>
+        <div className={`workspace-panels ${showMap ? '' : 'is-map-hidden'}`.trim()} aria-label="Legend and map panels">
+          <TimelineLegend events={filteredEvents} />
+          {showMap ? (
+            <Suspense
+              fallback={
+                <section className="map-panel" aria-label="Map panel loading state" aria-live="polite">
+                  <p>Loading map module...</p>
+                </section>
+              }
+            >
+              <LazyEventMapPanel selectedEvent={selectedEvent} events={filteredEvents} />
+            </Suspense>
+          ) : null}
         </div>
       </section>
     </TimelineSelectionContext.Provider>

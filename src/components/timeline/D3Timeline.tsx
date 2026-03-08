@@ -1,4 +1,4 @@
-﻿import {
+import {
   extent,
   select,
   zoom,
@@ -8,43 +8,65 @@
   type ZoomBehavior,
   type ZoomTransform
 } from 'd3';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent
-} from 'react';
-import { getCategoryColor, getCategoryLabel } from '@/lib/timeline/categories';
-import { computeLaneLayout } from '@/lib/timeline/layout';
+  getCategoryColor,
+  getCategoryLabel,
+  getCategorySymbol,
+  type CategorySymbol
+} from '@/lib/timeline/categories';
 import { buildTickSpec, createBaseTimeScale } from '@/lib/timeline/ticks';
-import type { LaneEvent, TimelineEvent } from '@/lib/timeline/types';
+import type { TimelineEvent } from '@/lib/timeline/types';
 import { useElementSize } from '@/lib/utils';
 
 type D3TimelineProps = {
   events: TimelineEvent[];
   selectedEventId: string | null;
-  onSelectEvent: (eventId: string) => void;
+  onSelectEvent: (eventId: string | null) => void;
+};
+
+type PositionedEvent = TimelineEvent & {
+  band: 'evia' | 'greece';
+  laneIndex: number;
+  y: number;
+};
+
+type BandLayout = {
+  events: PositionedEvent[];
+  topLaneCount: number;
+  bottomLaneCount: number;
+  height: number;
+  centerY: number;
+};
+
+type PlotSelection = Selection<SVGSVGElement, unknown, null, undefined>;
+
+type FireSeason = {
+  id: string;
+  startTs: number;
+  endTs: number;
 };
 
 const margin = {
   top: 38,
-  right: 16,
-  bottom: 24,
-  left: 174
+  right: 18,
+  bottom: 28,
+  left: 26
 };
 
-const eventMinWidth = 5;
-
-type OverlaySelection = Selection<SVGRectElement, unknown, null, undefined>;
+const minimumInnerWidth = 680;
+const eventHeight = 14;
+const laneGap = 8;
+const centerGap = 24;
+const pointCollisionMs = 86_400_000;
+const eventMinWidth = 6;
 
 function getDomain(events: TimelineEvent[]): [Date, Date] {
   const startExtent = extent(events, (event) => event.startTs);
   const endExtent = extent(events, (event) => event.endTs ?? event.startTs);
 
-  const minTs = startExtent[0] ?? Date.UTC(1970, 0, 1);
-  const maxTs = endExtent[1] ?? Date.now();
+  const minTs = Math.min(startExtent[0] ?? Date.UTC(1970, 0, 1), Date.UTC(1970, 0, 1));
+  const maxTs = Math.max(endExtent[1] ?? Date.now(), Date.now());
 
   const span = Math.max(86_400_000, maxTs - minTs);
   const pad = Math.max(86_400_000 * 20, span * 0.04);
@@ -52,11 +74,124 @@ function getDomain(events: TimelineEvent[]): [Date, Date] {
   return [new Date(minTs - pad), new Date(maxTs + pad)];
 }
 
+function getEventEndTs(event: TimelineEvent): number {
+  if (event.endTs) {
+    return event.endTs;
+  }
+
+  return event.startTs + pointCollisionMs;
+}
+
+function isEviaEvent(event: TimelineEvent): boolean {
+  return event.places.some((placeId) => /evia/i.test(placeId));
+}
+
+function packBand(
+  events: TimelineEvent[],
+  band: PositionedEvent['band']
+): Array<TimelineEvent & { laneIndex: number; band: PositionedEvent['band'] }> {
+  const sorted = [...events].sort((a, b) => {
+    if (a.startTs !== b.startTs) {
+      return a.startTs - b.startTs;
+    }
+
+    const aEnd = getEventEndTs(a);
+    const bEnd = getEventEndTs(b);
+    if (aEnd !== bEnd) {
+      return bEnd - aEnd;
+    }
+
+    return a.id.localeCompare(b.id);
+  });
+
+  const laneEndTs: number[] = [];
+
+  return sorted.map((event) => {
+    const eventEndTs = getEventEndTs(event);
+    let laneIndex = laneEndTs.findIndex((laneEnd) => laneEnd + pointCollisionMs < event.startTs);
+
+    if (laneIndex === -1) {
+      laneIndex = laneEndTs.length;
+      laneEndTs.push(eventEndTs);
+    } else {
+      laneEndTs[laneIndex] = eventEndTs;
+    }
+
+    return {
+      ...event,
+      laneIndex,
+      band
+    };
+  });
+}
+
+function computeBandLayout(events: TimelineEvent[]): BandLayout {
+  const eviaEvents = events.filter(isEviaEvent);
+  const greeceEvents = events.filter((event) => !isEviaEvent(event));
+
+  const packedTop = packBand(eviaEvents, 'evia');
+  const packedBottom = packBand(greeceEvents, 'greece');
+
+  const topLaneCount = Math.max(1, packedTop.reduce((max, event) => Math.max(max, event.laneIndex + 1), 0));
+  const bottomLaneCount = Math.max(1, packedBottom.reduce((max, event) => Math.max(max, event.laneIndex + 1), 0));
+
+  const topHeight = topLaneCount * eventHeight + Math.max(0, topLaneCount - 1) * laneGap;
+  const bottomHeight = bottomLaneCount * eventHeight + Math.max(0, bottomLaneCount - 1) * laneGap;
+
+  const centerY = topHeight + centerGap;
+  const height = topHeight + bottomHeight + centerGap * 2;
+
+  const positionedEvents: PositionedEvent[] = [
+    ...packedTop.map((event) => ({
+      ...event,
+      y: centerY - centerGap - eventHeight - event.laneIndex * (eventHeight + laneGap)
+    })),
+    ...packedBottom.map((event) => ({
+      ...event,
+      y: centerY + centerGap + event.laneIndex * (eventHeight + laneGap)
+    }))
+  ];
+
+  return {
+    events: positionedEvents,
+    topLaneCount,
+    bottomLaneCount,
+    height,
+    centerY
+  };
+}
+
+function buildFireSeasons(domain: [Date, Date]): FireSeason[] {
+  const minYear = domain[0].getUTCFullYear() - 1;
+  const maxYear = domain[1].getUTCFullYear() + 1;
+  const minTs = domain[0].getTime();
+  const maxTs = domain[1].getTime();
+
+  const seasons: FireSeason[] = [];
+
+  for (let year = minYear; year <= maxYear; year += 1) {
+    const startTs = Date.UTC(year, 3, 30, 0, 0, 0);
+    const endTs = Date.UTC(year, 9, 30, 23, 59, 59);
+
+    if (endTs < minTs || startTs > maxTs) {
+      continue;
+    }
+
+    seasons.push({
+      id: String(year),
+      startTs,
+      endTs
+    });
+  }
+
+  return seasons;
+}
+
 function buildLabelVisibility(
-  events: LaneEvent[],
+  events: PositionedEvent[],
   selectedEventId: string | null,
   spanDays: number,
-  xForEvent: (event: LaneEvent) => number
+  xForEvent: (event: PositionedEvent) => number
 ): Map<string, boolean> {
   const labels = new Map<string, boolean>();
 
@@ -67,13 +202,13 @@ function buildLabelVisibility(
     return labels;
   }
 
-  const minGapPx = spanDays > 365.25 * 12 ? 120 : spanDays > 365.25 * 5 ? 68 : spanDays > 365.25 * 2 ? 38 : 16;
+  const minGapPx = spanDays > 365.25 * 12 ? 120 : spanDays > 365.25 * 5 ? 70 : spanDays > 365.25 * 2 ? 42 : 18;
   const laneLastX = new Map<string, number>();
 
   const sorted = [...events].sort((a, b) => xForEvent(a) - xForEvent(b));
 
   for (const event of sorted) {
-    const laneKey = `${event.categoryIndex}:${event.laneIndex}`;
+    const laneKey = `${event.band}:${event.laneIndex}`;
     const x = xForEvent(event);
     const lastX = laneLastX.get(laneKey);
 
@@ -97,24 +232,67 @@ function truncateLabel(label: string, maxChars: number): string {
   return `${label.slice(0, maxChars - 1)}...`;
 }
 
+function renderPointMarker(
+  symbol: CategorySymbol,
+  x: number,
+  y: number,
+  size: number,
+  fill: string,
+  stroke: string,
+  strokeWidth: number
+): ReactNode {
+  if (symbol === 'square') {
+    return (
+      <rect
+        x={x - size}
+        y={y - size}
+        width={size * 2}
+        height={size * 2}
+        style={{ fill, stroke, strokeWidth }}
+      />
+    );
+  }
+
+  if (symbol === 'diamond') {
+    return (
+      <polygon
+        points={`${x},${y - size} ${x + size},${y} ${x},${y + size} ${x - size},${y}`}
+        style={{ fill, stroke, strokeWidth }}
+      />
+    );
+  }
+
+  if (symbol === 'triangle') {
+    return (
+      <polygon
+        points={`${x},${y - size} ${x + size},${y + size} ${x - size},${y + size}`}
+        style={{ fill, stroke, strokeWidth }}
+      />
+    );
+  }
+
+  return <circle cx={x} cy={y} r={size} style={{ fill, stroke, strokeWidth }} />;
+}
+
 export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D3TimelineProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const overlayRef = useRef<SVGRectElement | null>(null);
-  const zoomBehaviorRef = useRef<ZoomBehavior<SVGRectElement, unknown> | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
   const clipId = useId().replace(/:/g, '-');
-  const { width } = useElementSize(hostRef, { width: 0, height: 0 });
+  const { width, height: hostHeight } = useElementSize(hostRef, { width: 0, height: 0 });
 
   const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity);
 
-  const laneLayout = useMemo(() => {
-    return computeLaneLayout(events);
-  }, [events]);
   const hasEvents = events.length > 0;
+  const layout = useMemo(() => computeBandLayout(events), [events]);
 
-  const timelineHeight = laneLayout.totalHeight;
+  const minimumTimelineHeight = Math.max(220, Math.round(hostHeight));
+  const timelineHeight = Math.max(layout.height, minimumTimelineHeight);
+  const verticalOffset = Math.max(0, Math.round((timelineHeight - layout.height) / 2));
+  const dividerY = layout.centerY + verticalOffset;
   const svgHeight = margin.top + timelineHeight + margin.bottom;
-  const innerWidth = Math.max(360, width - margin.left - margin.right);
+  const innerWidth = Math.max(minimumInnerWidth, width - margin.left - margin.right);
 
   const baseDomain = useMemo(() => getDomain(events), [events]);
 
@@ -126,19 +304,37 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
     return transform.rescaleX(baseScale);
   }, [baseScale, transform]);
 
-  const visibleDomain = visibleScale.domain();
+  const visibleDomain = visibleScale.domain() as [Date, Date];
   const visibleSpanDays = Math.max(1, (visibleDomain[1].getTime() - visibleDomain[0].getTime()) / 86_400_000);
 
   const tickSpec = useMemo(() => {
     return buildTickSpec(visibleScale);
   }, [visibleScale]);
 
+  const fireSeasons = useMemo(() => buildFireSeasons(visibleDomain), [visibleDomain]);
+
   useEffect(() => {
-    if (!overlayRef.current || innerWidth <= 0) {
+    if (!svgRef.current || innerWidth <= 0) {
       return;
     }
 
-    const behavior = zoom<SVGRectElement, unknown>()
+    const behavior = zoom<SVGSVGElement, unknown>()
+      .filter((event) => {
+        const target = event.target as Element | null;
+        if (target?.closest('.timeline-event')) {
+          return false;
+        }
+
+        if (event.type === 'dblclick') {
+          return false;
+        }
+
+        if (event.type === 'mousedown' && event.button !== 0) {
+          return false;
+        }
+
+        return true;
+      })
       .scaleExtent([1, 720])
       .translateExtent([
         [0, 0],
@@ -148,36 +344,37 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
         [0, 0],
         [innerWidth, timelineHeight]
       ])
-      .on('zoom', (event: D3ZoomEvent<SVGRectElement, unknown>) => {
+      .on('zoom', (event: D3ZoomEvent<SVGSVGElement, unknown>) => {
         setTransform(event.transform);
       });
 
     zoomBehaviorRef.current = behavior;
 
-    const overlay = select<SVGRectElement, unknown>(overlayRef.current);
-    overlay.call(behavior);
+    const svgSelection = select<SVGSVGElement, unknown>(svgRef.current);
+    svgSelection.call(behavior);
+    svgSelection.on('dblclick.zoom', null);
 
     return () => {
-      overlay.on('.zoom', null);
+      svgSelection.on('.zoom', null);
     };
   }, [innerWidth, timelineHeight]);
 
   const runZoomCommand = (
-    command: (selection: OverlaySelection, behavior: ZoomBehavior<SVGRectElement, unknown>) => void
+    command: (selection: PlotSelection, behavior: ZoomBehavior<SVGSVGElement, unknown>) => void
   ): void => {
     const behavior = zoomBehaviorRef.current;
-    const overlay = overlayRef.current;
+    const svg = svgRef.current;
 
-    if (!behavior || !overlay) {
+    if (!behavior || !svg) {
       return;
     }
 
-    const selection = select<SVGRectElement, unknown>(overlay);
+    const selection = select<SVGSVGElement, unknown>(svg);
     command(selection, behavior);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (!overlayRef.current || !zoomBehaviorRef.current) {
+    if (!svgRef.current || !zoomBehaviorRef.current) {
       return;
     }
 
@@ -221,72 +418,30 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
     }
   };
 
-  const xForEvent = (event: LaneEvent): number => visibleScale(new Date(event.startTs));
+  const xForEvent = (event: PositionedEvent): number => visibleScale(new Date(event.startTs));
 
   const labelVisibility = useMemo(() => {
-    return buildLabelVisibility(laneLayout.events, selectedEventId, visibleSpanDays, xForEvent);
-  }, [laneLayout.events, selectedEventId, visibleSpanDays, visibleScale]);
+    return buildLabelVisibility(layout.events, selectedEventId, visibleSpanDays, xForEvent);
+  }, [layout.events, selectedEventId, visibleSpanDays, visibleScale]);
 
   return (
     <section className="timeline-card" aria-label="Timeline engine">
-      <div className="timeline-toolbar">
-        <div>
-          <p className="timeline-toolbar-label">Range</p>
-          <p className="timeline-toolbar-value">
-            {tickSpec.formatMajor(visibleDomain[0])} - {tickSpec.formatMajor(visibleDomain[1])}
-          </p>
-        </div>
-        <div className="timeline-toolbar-actions">
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.scaleBy, 1.28, [innerWidth / 2, 0]);
-              });
-            }}
-          >
-            Zoom in
-          </button>
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.scaleBy, 0.78, [innerWidth / 2, 0]);
-              });
-            }}
-          >
-            Zoom out
-          </button>
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.transform, zoomIdentity);
-              });
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-
       <div
         className="timeline-host"
         ref={hostRef}
         tabIndex={hasEvents ? 0 : -1}
         onKeyDown={handleKeyDown}
-        aria-label="Zoomable timeline. Use wheel or drag to zoom and pan. Keyboard: plus/minus, arrows, and R reset."
+        aria-label="Centered timeline. Upper band: Evia events. Lower band: rest of Greece events. Use wheel, drag, plus/minus, arrows, and R reset."
       >
-        {!hasEvents ? (
-          <p className="timeline-empty-label">No visible events for the current filter state.</p>
-        ) : null}
-        <svg width={Math.max(width, 640)} height={svgHeight} role="img" aria-label="Evia timeline from 1970 to today">
+        {!hasEvents ? <p className="timeline-empty-label">No visible events for the current state.</p> : null}
+        <svg
+          ref={svgRef}
+          width={Math.max(width, minimumInnerWidth + margin.left + margin.right)}
+          height={svgHeight}
+          role="img"
+          aria-label="Evia timeline with geographic split and yearly fire season markers"
+          onClick={() => onSelectEvent(null)}
+        >
           <defs>
             <clipPath id={clipId}>
               <rect x={0} y={0} width={innerWidth} height={timelineHeight} />
@@ -322,28 +477,46 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
               );
             })}
 
-            {laneLayout.categories.map((lane) => (
-              <g key={lane.category}>
-                <line x1={0} x2={innerWidth} y1={lane.y} y2={lane.y} className="timeline-lane-rule" />
-                <text x={-12} y={lane.y + 14} className="timeline-lane-label" textAnchor="end">
-                  {getCategoryLabel(lane.category)}
-                </text>
-              </g>
-            ))}
-
-            <line x1={0} x2={innerWidth} y1={timelineHeight} y2={timelineHeight} className="timeline-lane-rule" />
-
             <g clipPath={`url(#${clipId})`}>
-              {laneLayout.events.map((event) => {
+              {fireSeasons.map((season) => {
+                const xStart = visibleScale(new Date(season.startTs));
+                const xEnd = visibleScale(new Date(season.endTs));
+                const widthPx = Math.max(1, xEnd - xStart);
+
+                return (
+                  <rect
+                    key={season.id}
+                    x={xStart}
+                    y={0}
+                    width={widthPx}
+                    height={timelineHeight}
+                    className="timeline-fire-season"
+                  />
+                );
+              })}
+
+              <line x1={0} x2={innerWidth} y1={dividerY} y2={dividerY} className="timeline-divider-line" />
+              <text x={8} y={dividerY - centerGap - 8} className="timeline-zone-label">
+                Evia island events
+              </text>
+              <text x={8} y={dividerY + centerGap + 14} className="timeline-zone-label">
+                Rest of Greece events
+              </text>
+
+              {layout.events.map((event) => {
                 const color = getCategoryColor(event.category);
                 const xStart = visibleScale(new Date(event.startTs));
                 const xEnd = visibleScale(new Date(event.endTs ?? event.startTs));
-                const yMid = event.laneY + event.laneHeight / 2;
+                const yMid = event.y + verticalOffset + eventHeight / 2;
                 const isSelected = event.id === selectedEventId;
-                const isDuration = event.isDuration;
                 const widthPx = Math.max(eventMinWidth, xEnd - xStart);
 
-                const eventLabel = `${event.title}. ${event.displayDate}. Category ${getCategoryLabel(event.category)}.`;
+                const markerSize = isSelected ? 5.6 : 4.4;
+                const markerStroke = isSelected ? 'var(--color-text)' : '#f8f6f1';
+                const markerStrokeWidth = isSelected ? 1.2 : 0.8;
+
+                const locationLabel = event.band === 'evia' ? 'Evia island' : 'rest of Greece';
+                const eventLabel = `${event.title}. ${event.displayDate}. ${locationLabel}. Category ${getCategoryLabel(event.category)}.`;
 
                 return (
                   <g
@@ -352,7 +525,10 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                     role="button"
                     tabIndex={0}
                     aria-label={eventLabel}
-                    onClick={() => onSelectEvent(event.id)}
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onSelectEvent(event.id);
+                    }}
                     onKeyDown={(keyEvent) => {
                       if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
                         keyEvent.preventDefault();
@@ -360,36 +536,35 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                       }
                     }}
                   >
-                    {isDuration ? (
+                    {event.isDuration ? (
                       <rect
                         x={xStart}
-                        y={event.laneY}
+                        y={event.y + verticalOffset}
                         width={widthPx}
-                        height={event.laneHeight}
+                        height={eventHeight}
                         rx={2}
                         style={{
                           fill: color,
-                          opacity: isSelected ? 0.9 : 0.45,
+                          opacity: isSelected ? 0.88 : 0.5,
                           stroke: isSelected ? 'var(--color-text)' : color,
-                          strokeWidth: isSelected ? 1.2 : 0.7
+                          strokeWidth: isSelected ? 1.2 : 0.8
                         }}
                       />
                     ) : (
-                      <circle
-                        cx={xStart}
-                        cy={yMid}
-                        r={isSelected ? 5.3 : 4.1}
-                        style={{
-                          fill: color,
-                          stroke: isSelected ? 'var(--color-text)' : 'transparent',
-                          strokeWidth: isSelected ? 1.1 : 0
-                        }}
-                      />
+                      renderPointMarker(
+                        getCategorySymbol(event.category),
+                        xStart,
+                        yMid,
+                        markerSize,
+                        color,
+                        markerStroke,
+                        markerStrokeWidth
+                      )
                     )}
 
                     {labelVisibility.get(event.id) && (
                       <text
-                        x={isDuration ? xStart + Math.min(8, widthPx + 6) : xStart + 8}
+                        x={event.isDuration ? xStart + Math.min(10, widthPx + 6) : xStart + 9}
                         y={yMid - 5}
                         className={`timeline-event-label ${isSelected ? 'is-selected' : ''}`}
                       >
@@ -400,16 +575,6 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 );
               })}
             </g>
-
-            <rect
-              ref={overlayRef}
-              x={0}
-              y={0}
-              width={innerWidth}
-              height={timelineHeight}
-              className="timeline-zoom-hitbox"
-              aria-hidden="true"
-            />
           </g>
         </svg>
       </div>
