@@ -34,7 +34,6 @@ export default function TimelineLegend({ events }: TimelineLegendProps) {
     <section className="legend-panel" aria-label="Timeline legend">
       <header className="legend-header">
         <p className="detail-eyebrow">Legend</p>
-        <h2>Event types and timeline markers</h2>
       </header>
 
       <div className="legend-static">

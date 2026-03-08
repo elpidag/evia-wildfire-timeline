@@ -91,7 +91,7 @@ a {
 }
 
 .timeline-workspace {
-  margin-top: var(--space-5);
+  margin-top: 0;
   display: grid;
   gap: var(--space-4);
   justify-items: stretch;

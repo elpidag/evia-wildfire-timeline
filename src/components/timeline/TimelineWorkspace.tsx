@@ -96,7 +96,6 @@ export default function TimelineWorkspace() {
         setEvents(resources.events);
         setSourcesById(resources.sourcesById);
         setMediaById(resources.mediaById);
-        setSelectedEventId((previous) => previous ?? resources.events[0]?.id ?? null);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -143,7 +142,7 @@ export default function TimelineWorkspace() {
         return previous;
       }
 
-      return filteredEvents[0].id;
+      return null;
     });
   }, [filteredEvents, isLoading]);
 
@@ -197,7 +196,9 @@ export default function TimelineWorkspace() {
   return (
     <TimelineSelectionContext.Provider value={selectionState}>
       <section className="timeline-workspace" aria-label="Timeline workspace">
-        <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
+        {selectedEvent ? (
+          <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
+        ) : null}
 
         {filteredEvents.length === 0 ? (
           <section className="timeline-empty-state" aria-live="polite">

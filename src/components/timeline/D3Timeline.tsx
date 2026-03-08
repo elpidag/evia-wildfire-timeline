@@ -22,7 +22,7 @@ import { useElementSize } from '@/lib/utils';
 type D3TimelineProps = {
   events: TimelineEvent[];
   selectedEventId: string | null;
-  onSelectEvent: (eventId: string) => void;
+  onSelectEvent: (eventId: string | null) => void;
 };
 
 type PositionedEvent = TimelineEvent & {
@@ -446,53 +446,6 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
 
   return (
     <section className="timeline-card" aria-label="Timeline engine">
-      <div className="timeline-toolbar">
-        <div>
-          <p className="timeline-toolbar-label">Range</p>
-          <p className="timeline-toolbar-value">
-            {tickSpec.formatMajor(visibleDomain[0])} - {tickSpec.formatMajor(visibleDomain[1])}
-          </p>
-        </div>
-        <div className="timeline-toolbar-actions">
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.scaleBy, 1.28, [innerWidth / 2, 0]);
-              });
-            }}
-          >
-            Zoom in
-          </button>
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.scaleBy, 0.78, [innerWidth / 2, 0]);
-              });
-            }}
-          >
-            Zoom out
-          </button>
-          <button
-            type="button"
-            className="timeline-button"
-            disabled={!hasEvents}
-            onClick={() => {
-              runZoomCommand((selection, behavior) => {
-                selection.call(behavior.transform, zoomIdentity);
-              });
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-
       <div
         className="timeline-host"
         ref={hostRef}
@@ -507,6 +460,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
           height={svgHeight}
           role="img"
           aria-label="Evia timeline with geographic split and yearly fire season markers"
+          onClick={() => onSelectEvent(null)}
         >
           <defs>
             <clipPath id={clipId}>
@@ -591,7 +545,10 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                     role="button"
                     tabIndex={0}
                     aria-label={eventLabel}
-                    onClick={() => onSelectEvent(event.id)}
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onSelectEvent(event.id);
+                    }}
                     onKeyDown={(keyEvent) => {
                       if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
                         keyEvent.preventDefault();

@@ -56,7 +56,6 @@ export default function EventDetailPanel({ selectedEvent, sourcesById, mediaById
   return (
     <aside className="detail-panel" aria-label="Event detail panel" aria-live="polite">
       <header className="detail-header">
-        <p className="detail-eyebrow">Selected event</p>
         <h2>{selectedEvent.title}</h2>
         <p className="detail-date">{selectedEvent.displayDate}</p>
         <span
