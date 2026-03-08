@@ -280,34 +280,14 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
 
   const clipId = useId().replace(/:/g, '-');
-  const { width } = useElementSize(hostRef, { width: 0, height: 0 });
+  const { width, height: hostHeight } = useElementSize(hostRef, { width: 0, height: 0 });
 
   const [transform, setTransform] = useState<ZoomTransform>(zoomIdentity);
-  const [viewportHeight, setViewportHeight] = useState(() =>
-    typeof window === 'undefined' ? 900 : window.innerHeight
-  );
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const handleResize = () => {
-      setViewportHeight(window.innerHeight);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   const hasEvents = events.length > 0;
   const layout = useMemo(() => computeBandLayout(events), [events]);
 
-  const minimumTimelineHeight = Math.max(260, Math.round(viewportHeight / 3));
+  const minimumTimelineHeight = Math.max(220, Math.round(hostHeight));
   const timelineHeight = Math.max(layout.height, minimumTimelineHeight);
   const verticalOffset = Math.max(0, Math.round((timelineHeight - layout.height) / 2));
   const dividerY = layout.centerY + verticalOffset;

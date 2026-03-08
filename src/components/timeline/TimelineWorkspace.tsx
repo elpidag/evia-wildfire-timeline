@@ -196,19 +196,11 @@ export default function TimelineWorkspace() {
   return (
     <TimelineSelectionContext.Provider value={selectionState}>
       <section className="timeline-workspace" aria-label="Timeline workspace">
-        {selectedEvent ? (
-          <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
-        ) : null}
-
-        {filteredEvents.length === 0 ? (
-          <section className="timeline-empty-state" aria-live="polite">
-            <h2>No events match the current URL filter state</h2>
-            <p>Clear URL filters to restore the full timeline dataset.</p>
-            <button type="button" className="timeline-button" onClick={() => setFilters(createEmptyFilters())}>
-              Clear hidden filters
-            </button>
-          </section>
-        ) : null}
+        <div className="detail-slot" aria-live="polite">
+          {selectedEvent ? (
+            <EventDetailPanel selectedEvent={selectedEvent} sourcesById={sourcesById} mediaById={mediaById} />
+          ) : null}
+        </div>
 
         <D3Timeline
           events={filteredEvents}

@@ -91,10 +91,19 @@ a {
 }
 
 .timeline-workspace {
+  --workspace-gap: var(--space-4);
+  --timeline-ratio: 33.333%;
+  --legend-ratio: 20%;
   margin-top: 0;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--workspace-gap);
   justify-items: stretch;
+  height: calc(100vh - (var(--space-6) * 2));
+  min-height: 40rem;
+  grid-template-rows:
+    minmax(0, calc(100% - var(--timeline-ratio) - var(--legend-ratio) - (var(--workspace-gap) * 2)))
+    minmax(0, var(--timeline-ratio))
+    minmax(0, var(--legend-ratio));
 }
 
 .filter-panel {
@@ -195,11 +204,24 @@ a {
   padding: var(--space-4);
 }
 
+.detail-slot {
+  min-height: 0;
+}
+
+.detail-slot .detail-panel {
+  height: 100%;
+  overflow: auto;
+}
+
 .timeline-card {
   border: 1px solid var(--color-rule);
   background: var(--color-surface);
   padding: var(--space-4);
   box-shadow: 0 2px 0 rgba(27, 26, 24, 0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
 }
 
 .timeline-toolbar {
@@ -260,6 +282,8 @@ a {
   display: flex;
   justify-content: center;
   cursor: grab;
+  flex: 1;
+  min-height: 0;
 }
 
 .timeline-host:focus-visible {
@@ -328,6 +352,8 @@ a {
   display: grid;
   gap: var(--space-4);
   align-items: start;
+  min-height: 0;
+  height: 100%;
 }
 
 .workspace-panels.is-map-hidden {
@@ -339,6 +365,8 @@ a {
   width: 25%;
   min-width: 18rem;
   max-width: 24rem;
+  height: 100%;
+  overflow: auto;
 }
 
 .detail-panel,
@@ -598,6 +626,11 @@ a {
 @media (max-width: 52rem) {
   .site-shell {
     padding: var(--space-5) var(--space-3);
+  }
+
+  .timeline-workspace {
+    height: calc(100vh - (var(--space-5) * 2));
+    min-height: 32rem;
   }
 
   .timeline-toolbar {
