@@ -15,6 +15,9 @@ export const compiledEventSchema = z.object({
   category: z.enum(categoryValues),
   start: z.string().min(4),
   end: z.string().nullable().optional(),
+  actors: z.array(z.string().min(1)).default([]),
+  places: z.array(z.string().min(1)).default([]),
+  tags: z.array(z.string().min(1)).default([]),
   datePrecision: z.enum(datePrecisionValues),
   isOngoing: z.boolean(),
   displayDate: z.string().min(1),
@@ -69,6 +72,9 @@ export type TimelineEvent = {
   summary: string;
   body: string;
   category: CompiledEvent['category'];
+  actors: string[];
+  places: string[];
+  tags: string[];
   startTs: number;
   endTs: number | null;
   isDuration: boolean;

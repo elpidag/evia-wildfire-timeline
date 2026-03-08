@@ -110,6 +110,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const laneLayout = useMemo(() => {
     return computeLaneLayout(events);
   }, [events]);
+  const hasEvents = events.length > 0;
 
   const timelineHeight = laneLayout.totalHeight;
   const svgHeight = margin.top + timelineHeight + margin.bottom;
@@ -239,6 +240,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
           <button
             type="button"
             className="timeline-button"
+            disabled={!hasEvents}
             onClick={() => {
               runZoomCommand((selection, behavior) => {
                 selection.call(behavior.scaleBy, 1.28, [innerWidth / 2, 0]);
@@ -250,6 +252,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
           <button
             type="button"
             className="timeline-button"
+            disabled={!hasEvents}
             onClick={() => {
               runZoomCommand((selection, behavior) => {
                 selection.call(behavior.scaleBy, 0.78, [innerWidth / 2, 0]);
@@ -261,6 +264,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
           <button
             type="button"
             className="timeline-button"
+            disabled={!hasEvents}
             onClick={() => {
               runZoomCommand((selection, behavior) => {
                 selection.call(behavior.transform, zoomIdentity);
@@ -275,10 +279,13 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
       <div
         className="timeline-host"
         ref={hostRef}
-        tabIndex={0}
+        tabIndex={hasEvents ? 0 : -1}
         onKeyDown={handleKeyDown}
         aria-label="Zoomable timeline. Use wheel or drag to zoom and pan. Keyboard: plus/minus, arrows, and R reset."
       >
+        {!hasEvents ? (
+          <p className="timeline-empty-label">No visible events for the current filter state.</p>
+        ) : null}
         <svg width={Math.max(width, 640)} height={svgHeight} role="img" aria-label="Evia timeline from 1970 to today">
           <defs>
             <clipPath id={clipId}>

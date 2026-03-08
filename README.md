@@ -1,76 +1,124 @@
-# Evia Wildfire Timeline — Codex Handoff Pack
+# Evia Wildfire Timeline
 
-This pack is the build brief for an interactive research website about the network of actors, decisions, processes, and aftermath surrounding the 2021 wildfire in Evia, within a longer historical timeline spanning **1970 to today**.
+Publication-grade investigative website for researching actors, decisions, and processes around the 2021 Evia wildfire within a 1970-today timeline.
 
-The website should let a user:
+## Stack
 
-- scan the whole timeline at once,
-- zoom into specific periods,
-- filter by actor/category/place,
-- click an event to open a detail panel,
-- see the linked **map annotation**, **image(s)**, and **text** for that event,
-- and continue expanding the dataset over time without rebuilding the project structure.
+- Astro for static shell and routes
+- React + TypeScript for interactive workspace
+- D3 for custom timeline engine
+- MapLibre GL JS for synchronized map
+- Keystatic for Git-backed editorial entry
+- Zod + build scripts for strict content validation
 
-## Recommended build direction
+## Current scope
 
-**Use Astro + React + TypeScript + Keystatic + MapLibre GL JS + D3.**
+Implemented through Phase 7:
 
-Why this stack:
+- D3 timeline with zoom/pan, category lanes, point/duration events
+- Detail panel with actors, places, sources, and media
+- Lazy-loaded MapLibre panel synchronized to selection
+- Filters for category, actor, place, tags, and date range
+- URL query state for selection and filters
+- Reset + stable empty states
+- Hardened Keystatic field guidance and validation constraints
+- Responsive, accessibility, and performance-oriented refinements
 
-- **Astro** keeps the site fast and editorial, with minimal JavaScript by default.
-- **React** is used only where stateful interaction is needed: timeline, filters, map, detail drawer.
-- **Keystatic** gives a lightweight Git-based admin UI so events, actors, places, and media can be added later without turning the project into a heavy CMS.
-- **MapLibre GL JS** handles interactive mapping and GeoJSON overlays efficiently.
-- **D3** gives precise control over a custom zoomable timeline and brush interactions.
+## Local development
 
-## Important strategic recommendation
+Requirements:
 
-Do **not** clone the original Forensic Architecture `timemap` repo as the main production path. Use it as a **reference**, not as the base application.
+- Node.js 20+
+- npm
 
-Reasons:
+Install and run:
 
-- It is a strong conceptual reference.
-- It is explicitly marked as **not actively maintained** in its original repository.
-- Bellingcat maintains a more active fork, but it is still a specialized product architecture rather than the cleanest starting point for a bespoke Evia investigation.
+```bash
+npm install
+npm run build:data
+npm run dev
+```
 
-For this project, a custom implementation inspired by that lineage is the best balance of:
+Timeline workspace:
 
-- performance,
-- editorial control,
-- maintainability,
-- and long-term research usability.
+- `http://localhost:4321/timeline`
 
-## File index
+Keystatic editor (local mode):
 
-1. `PROJECT_BRIEF.md` — high-level project definition
-2. `REFERENCE_AUDIT.md` — audit of reference websites and tool findings
-3. `PRODUCT_SPEC.md` — UX, features, and acceptance criteria
-4. `TECH_ARCHITECTURE.md` — technical stack and build decisions
-5. `DATA_MODEL.md` — content model, schemas, and storage strategy
-6. `DESIGN_SYSTEM.md` — visual language and UI behavior
-7. `EDITORIAL_WORKFLOW.md` — how to keep adding material over time
-8. `IMPLEMENTATION_PLAN.md` — phased execution plan
-9. `CONTENT_TEMPLATES.md` — example content entries
-10. `CODEX_PROMPT.md` — direct build instructions for Codex
+- `http://localhost:4321/keystatic`
 
-## Build priorities
+## Scripts
 
-Priority order for implementation:
+- `npm run dev`: Astro dev server
+- `npm run build:data`: compile content to `public/data/*`
+- `npm run validate:content`: validate content/references only
+- `npm run typecheck`: Astro/TypeScript check
+- `npm run lint`: ESLint
+- `npm run build`: data compile + validation + Astro production build
+- `npm run preview`: preview production output
 
-1. Stable data model
-2. Timeline overview + zoom
-3. Detail drawer
-4. Map integration
-5. Filters/search
-6. Editing workflow
-7. Polish, accessibility, and performance
+## Data and editing model
 
-## Success criteria
+Authoring source:
 
-The build is successful when:
+- `src/content/events`
+- `src/content/actors`
+- `src/content/places`
+- `src/content/pages`
+- `src/references/sources.json`
+- `src/references/media.json`
 
-- a historian/researcher can add a new event without changing application code,
-- the timeline stays legible from 1970–today,
-- event detail pages/panels can show narrative + actors + sources + map + media,
-- the interface feels rigorous, restrained, and publication-ready,
-- and the site remains lightweight enough to deploy statically.
+Compiled artifacts:
+
+- `public/data/events.index.json`
+- `public/data/events.geojson`
+- `public/data/events.by-year/*.json`
+- `public/data/actors.json`
+- `public/data/places.json`
+- `public/data/sources.json`
+- `public/data/media.json`
+
+The app reads compiled artifacts, not raw markdown, at runtime.
+
+## URL state
+
+Supported timeline query parameters:
+
+- `event`
+- `category`
+- `actors`
+- `places`
+- `tags`
+- `from`
+- `to`
+
+Example:
+
+`/timeline?event=evia-2021-wildfire-front-duration&category=wildfire&actors=actor-hellenic-fire-service&from=2021-08-01&to=2021-08-31`
+
+## Editorial instructions
+
+Detailed non-developer editing workflow:
+
+- [EDITING.md](./EDITING.md)
+
+Canonical product/editorial references:
+
+- `PROJECT_BRIEF.md`
+- `PRODUCT_SPEC.md`
+- `TECH_ARCHITECTURE.md`
+- `DATA_MODEL.md`
+- `DESIGN_SYSTEM.md`
+- `EDITORIAL_WORKFLOW.md`
+
+## Quality gate
+
+Run before committing:
+
+```bash
+npm run build:data
+npm run validate:content
+npm run typecheck
+npm run lint
+npm run build
+```

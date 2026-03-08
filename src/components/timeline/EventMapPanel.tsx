@@ -1,4 +1,4 @@
-﻿import 'maplibre-gl/dist/maplibre-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl, { type LngLatBoundsLike, type Map } from 'maplibre-gl';
@@ -10,6 +10,12 @@ type EventMapPanelProps = {
 };
 
 type FeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
+type CoordinateBounds = [[number, number], [number, number]];
+
+const contextSourceId = 'filtered-events-source';
+const contextFillLayerId = 'filtered-events-fill';
+const contextLineLayerId = 'filtered-events-line';
+const contextCircleLayerId = 'filtered-events-circle';
 
 const selectedSourceId = 'selected-event-source';
 const selectedFillLayerId = 'selected-event-fill';
@@ -73,7 +79,7 @@ function extractCoordinatePairs(input: unknown, acc: [number, number][]): void {
   }
 }
 
-function getGeometryBounds(geometry: TimelineEvent['geometry']): LngLatBoundsLike | null {
+function getGeometryBounds(geometry: TimelineEvent['geometry']): CoordinateBounds | null {
   if (!geometry) {
     return null;
   }
@@ -103,35 +109,75 @@ function getGeometryBounds(geometry: TimelineEvent['geometry']): LngLatBoundsLik
   ];
 }
 
-function toSelectedFeatureCollection(selectedEvent: TimelineEvent | null): FeatureCollection {
-  if (!selectedEvent?.geometry) {
-    return {
-      type: 'FeatureCollection',
-      features: []
-    };
-  }
-
+function toFeatureCollection(events: TimelineEvent[]): FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: [
-      {
+    features: events
+      .filter((event) => Boolean(event.geometry))
+      .map((event) => ({
         type: 'Feature',
-        id: selectedEvent.id,
+        id: event.id,
         properties: {
-          id: selectedEvent.id,
-          title: selectedEvent.title
+          id: event.id,
+          title: event.title
         },
-        geometry: selectedEvent.geometry as GeoJSON.Geometry
-      }
-    ]
+        geometry: event.geometry as GeoJSON.Geometry
+      }))
   };
 }
 
-function ensureSelectionLayers(map: Map): void {
+function ensureMapLayers(map: Map): void {
+  if (!map.getSource(contextSourceId)) {
+    map.addSource(contextSourceId, {
+      type: 'geojson',
+      data: toFeatureCollection([])
+    });
+  }
+
+  if (!map.getLayer(contextFillLayerId)) {
+    map.addLayer({
+      id: contextFillLayerId,
+      type: 'fill',
+      source: contextSourceId,
+      filter: ['==', ['geometry-type'], 'Polygon'],
+      paint: {
+        'fill-color': '#7b766f',
+        'fill-opacity': 0.12
+      }
+    });
+  }
+
+  if (!map.getLayer(contextLineLayerId)) {
+    map.addLayer({
+      id: contextLineLayerId,
+      type: 'line',
+      source: contextSourceId,
+      paint: {
+        'line-color': '#6c6760',
+        'line-width': 1
+      }
+    });
+  }
+
+  if (!map.getLayer(contextCircleLayerId)) {
+    map.addLayer({
+      id: contextCircleLayerId,
+      type: 'circle',
+      source: contextSourceId,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: {
+        'circle-radius': 4,
+        'circle-color': '#726d66',
+        'circle-stroke-width': 1,
+        'circle-stroke-color': '#f8f6f1'
+      }
+    });
+  }
+
   if (!map.getSource(selectedSourceId)) {
     map.addSource(selectedSourceId, {
       type: 'geojson',
-      data: toSelectedFeatureCollection(null)
+      data: toFeatureCollection([])
     });
   }
 
@@ -143,7 +189,7 @@ function ensureSelectionLayers(map: Map): void {
       filter: ['==', ['geometry-type'], 'Polygon'],
       paint: {
         'fill-color': '#8f2f23',
-        'fill-opacity': 0.22
+        'fill-opacity': 0.24
       }
     });
   }
@@ -155,7 +201,7 @@ function ensureSelectionLayers(map: Map): void {
       source: selectedSourceId,
       paint: {
         'line-color': '#6f241b',
-        'line-width': 2
+        'line-width': 2.2
       }
     });
   }
@@ -176,40 +222,25 @@ function ensureSelectionLayers(map: Map): void {
   }
 }
 
-function applySelectionToMap(map: Map, selectedEvent: TimelineEvent | null): void {
+function applyContextData(map: Map, events: TimelineEvent[]): void {
+  const source = map.getSource(contextSourceId) as maplibregl.GeoJSONSource | undefined;
+  if (!source) {
+    return;
+  }
+
+  source.setData(toFeatureCollection(events));
+}
+
+function applySelectedData(map: Map, selectedEvent: TimelineEvent | null): void {
   const source = map.getSource(selectedSourceId) as maplibregl.GeoJSONSource | undefined;
   if (!source) {
     return;
   }
 
-  source.setData(toSelectedFeatureCollection(selectedEvent));
-
-  if (!selectedEvent) {
-    return;
-  }
-
-  const duration = getMotionDuration();
-  const geometryBounds = getGeometryBounds(selectedEvent.geometry);
-
-  if (geometryBounds) {
-    map.fitBounds(geometryBounds, {
-      padding: 40,
-      duration,
-      maxZoom: 10
-    });
-    return;
-  }
-
-  if (selectedEvent.mapViewport) {
-    map.easeTo({
-      center: selectedEvent.mapViewport.center,
-      zoom: selectedEvent.mapViewport.zoom,
-      duration
-    });
-  }
+  source.setData(selectedEvent ? toFeatureCollection([selectedEvent]) : toFeatureCollection([]));
 }
 
-function getDefaultViewport(events: TimelineEvent[]): { center: [number, number]; zoom: number } {
+function getFallbackViewport(events: TimelineEvent[]): { center: [number, number]; zoom: number } {
   for (const event of events) {
     if (event.mapViewport) {
       return {
@@ -225,6 +256,80 @@ function getDefaultViewport(events: TimelineEvent[]): { center: [number, number]
   };
 }
 
+function getBoundsForEvents(events: TimelineEvent[]): LngLatBoundsLike | null {
+  let combinedBounds: maplibregl.LngLatBounds | null = null;
+
+  for (const event of events) {
+    const bounds = getGeometryBounds(event.geometry);
+    if (!bounds) {
+      continue;
+    }
+
+    const current = new maplibregl.LngLatBounds(bounds[0], bounds[1]);
+    if (!combinedBounds) {
+      combinedBounds = current;
+    } else {
+      combinedBounds.extend(current.getSouthWest());
+      combinedBounds.extend(current.getNorthEast());
+    }
+  }
+
+  if (!combinedBounds) {
+    return null;
+  }
+
+  return [
+    [combinedBounds.getWest(), combinedBounds.getSouth()],
+    [combinedBounds.getEast(), combinedBounds.getNorth()]
+  ];
+}
+
+function applyViewport(
+  map: Map,
+  selectedEvent: TimelineEvent | null,
+  events: TimelineEvent[],
+  fallbackViewport: { center: [number, number]; zoom: number }
+): void {
+  const duration = getMotionDuration();
+
+  if (selectedEvent) {
+    const geometryBounds = getGeometryBounds(selectedEvent.geometry);
+    if (geometryBounds) {
+      map.fitBounds(geometryBounds, {
+        padding: 40,
+        duration,
+        maxZoom: 10
+      });
+      return;
+    }
+
+    if (selectedEvent.mapViewport) {
+      map.easeTo({
+        center: selectedEvent.mapViewport.center,
+        zoom: selectedEvent.mapViewport.zoom,
+        duration
+      });
+      return;
+    }
+  }
+
+  const eventBounds = getBoundsForEvents(events);
+  if (eventBounds) {
+    map.fitBounds(eventBounds, {
+      padding: 40,
+      duration,
+      maxZoom: 9
+    });
+    return;
+  }
+
+  map.easeTo({
+    center: fallbackViewport.center,
+    zoom: fallbackViewport.zoom,
+    duration
+  });
+}
+
 export default function EventMapPanel({ selectedEvent, events }: EventMapPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
@@ -232,7 +337,7 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
   const [isReady, setIsReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  const defaultViewport = useMemo(() => getDefaultViewport(events), [events]);
+  const fallbackViewport = useMemo(() => getFallbackViewport(events), [events]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -244,8 +349,8 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
       const map = new maplibregl.Map({
         container,
         style: subduedStyle,
-        center: defaultViewport.center,
-        zoom: defaultViewport.zoom,
+        center: fallbackViewport.center,
+        zoom: fallbackViewport.zoom,
         attributionControl: false
       });
 
@@ -253,8 +358,10 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
       map.on('load', () => {
-        ensureSelectionLayers(map);
-        applySelectionToMap(map, selectedEvent);
+        ensureMapLayers(map);
+        applyContextData(map, events);
+        applySelectedData(map, selectedEvent);
+        applyViewport(map, selectedEvent, events, fallbackViewport);
         setIsReady(true);
       });
 
@@ -273,7 +380,7 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [defaultViewport.center, defaultViewport.zoom, selectedEvent]);
+  }, []);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -281,15 +388,23 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
       return;
     }
 
-    applySelectionToMap(map, selectedEvent);
-  }, [isReady, selectedEvent]);
+    applyContextData(map, events);
+    applySelectedData(map, selectedEvent);
+    applyViewport(map, selectedEvent, events, fallbackViewport);
+  }, [events, fallbackViewport, isReady, selectedEvent]);
 
   return (
     <section className="map-panel" aria-label="Map panel">
       <header className="map-panel-header">
         <p className="detail-eyebrow">Map</p>
         <h2>Spatial annotation</h2>
-        <p>{selectedEvent ? `Focused on: ${selectedEvent.title}` : 'Select an event to focus its spatial context.'}</p>
+        <p>
+          {selectedEvent
+            ? `Focused on: ${selectedEvent.title}`
+            : events.length > 0
+              ? `Overview of ${events.length} visible events.`
+              : 'No visible events in the current filter state.'}
+        </p>
       </header>
 
       {mapError ? <p className="map-error">{mapError}</p> : null}
@@ -298,7 +413,7 @@ export default function EventMapPanel({ selectedEvent, events }: EventMapPanelPr
         ref={containerRef}
         className="map-canvas"
         tabIndex={0}
-        aria-label="Interactive map showing selected event geometry"
+        aria-label="Interactive map showing selected and filtered event geometry"
       />
     </section>
   );

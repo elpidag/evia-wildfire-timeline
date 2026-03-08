@@ -96,6 +96,17 @@ export default function EventDetailPanel({ selectedEvent, sourcesById, mediaById
             <li key={place.id}>{place.name}</li>
           ))}
         </ul>
+
+        {selectedEvent.tags.length > 0 ? (
+          <>
+            <h3>Tags</h3>
+            <ul>
+              {selectedEvent.tags.map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </section>
 
       <section className="detail-section" aria-label="Sources">
