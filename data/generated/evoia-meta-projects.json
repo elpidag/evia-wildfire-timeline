@@ -2951,7 +2951,7 @@
     "description": null,
     "locationArea": null,
     "comments": null,
-    "fundingProvenance": "mixed_unclear",
+    "fundingProvenance": "private_philanthropy",
     "indicativeEndDateISO": "2027-12-31",
     "indicativeEndPrecision": "month",
     "hasUsableEndDate": true,

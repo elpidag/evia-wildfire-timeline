@@ -1,5 +1,5 @@
 import { easeCubicOut, select } from 'd3';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
 import type { EvoiaMetaProject } from '@/lib/evoia-meta/schema';
 import { computeSlideLayout } from '@/lib/evoia-meta/presentation-layout';
@@ -15,7 +15,7 @@ type AnnouncedProjectsDeckProps = {
   projects: EvoiaMetaProject[];
 };
 
-const TOTAL_SLIDES = 1; // Only slide 1 for now
+const TOTAL_SLIDES = 2;
 
 function useViewportSize() {
   const [size, setSize] = useState({ width: 1920, height: 1080 });
@@ -38,6 +38,7 @@ function useViewportSize() {
 export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDeckProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const barsRef = useRef<SVGGElement>(null);
+  const isFirstRenderRef = useRef(true);
   const [slideIndex, setSlideIndex] = useState(0);
   const reducedMotion = usePrefersReducedMotion();
   const viewport = useViewportSize();
@@ -84,16 +85,24 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
   }, [handleKeyDown]);
 
   // --- D3 transitions on layout change ---
-  useEffect(() => {
+  // useLayoutEffect ensures first-render positions are set before browser paint.
+  // On first render: duration=0 (instant placement, no flash).
+  // On subsequent renders: D3 transitions animate from old to new positions.
+  // React only updates data-target-* attributes; D3 manages the actual
+  // transform, width, height, fill, y, and font-size attributes.
+  useLayoutEffect(() => {
     if (!barsRef.current) {
       return;
     }
 
     const g = select(barsRef.current);
+    const duration = isFirstRenderRef.current ? 0 : transitionMs;
+    isFirstRenderRef.current = false;
 
+    // Animate bar group positions
     g.selectAll<SVGGElement, unknown>('g.deck-bar')
       .transition()
-      .duration(transitionMs)
+      .duration(duration)
       .ease(easeCubicOut)
       .attr('transform', function () {
         const x = Number((this as HTMLElement).dataset.targetX) || 0;
@@ -101,9 +110,10 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         return `translate(${x}, ${y})`;
       });
 
+    // Animate bar rectangles
     g.selectAll<SVGRectElement, unknown>('rect.deck-bar-rect')
       .transition()
-      .duration(transitionMs)
+      .duration(duration)
       .ease(easeCubicOut)
       .attr('width', function () {
         return Number((this as HTMLElement).dataset.targetWidth) || 0;
@@ -113,6 +123,33 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
       })
       .attr('fill', function () {
         return (this as HTMLElement).dataset.targetFill ?? '#e4e7ed';
+      });
+
+    // Animate tag text vertical position and font size
+    g.selectAll<SVGTextElement, unknown>('text.deck-bar-tag')
+      .transition()
+      .duration(duration)
+      .ease(easeCubicOut)
+      .attr('y', function () {
+        return Number((this as HTMLElement).dataset.targetY) || 0;
+      })
+      .attr('font-size', function () {
+        return Number((this as HTMLElement).dataset.targetFontSize) || 10;
+      });
+
+    // Animate title text vertical position, font size, and opacity
+    g.selectAll<SVGTextElement, unknown>('text.deck-bar-title')
+      .transition()
+      .duration(duration)
+      .ease(easeCubicOut)
+      .attr('y', function () {
+        return Number((this as HTMLElement).dataset.targetY) || 0;
+      })
+      .attr('font-size', function () {
+        return Number((this as HTMLElement).dataset.targetFontSize) || 10;
+      })
+      .attr('opacity', function () {
+        return Number((this as HTMLElement).dataset.targetOpacity) ?? 1;
       });
   }, [layout, transitionMs]);
 
@@ -174,7 +211,9 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         </text>
       ))}
 
-      {/* Project bars */}
+      {/* Project bars — positions/sizes managed entirely by D3 transitions.
+          React only updates data-target-* attributes; D3 reads them and
+          animates the actual transform, width, height, fill, etc. */}
       <g ref={barsRef}>
         {layout.bars.map((bar) => (
           <g
@@ -182,16 +221,11 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
             className="deck-bar"
             data-target-x={bar.x}
             data-target-y={bar.y}
-            transform={`translate(${bar.x}, ${bar.y})`}
           >
-            {/* Bar rectangle */}
             <rect
               className="deck-bar-rect"
               x={0}
               y={0}
-              width={bar.width}
-              height={bar.height}
-              fill={bar.fill}
               data-target-width={bar.width}
               data-target-height={bar.height}
               data-target-fill={bar.fill}
@@ -199,12 +233,13 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
 
             {/* Tag label (left of bar) */}
             <text
+              className="deck-bar-tag"
               x={bar.tagX - bar.x}
-              y={bar.height / 2}
+              data-target-y={bar.height / 2}
+              data-target-font-size={bar.tagFontSize}
               textAnchor="end"
               dominantBaseline="central"
               fontFamily={FONT_DISPLAY}
-              fontSize={bar.tagFontSize}
               fontWeight={600}
               fill={COLOR_TEXT}
               letterSpacing="0.01em"
@@ -212,20 +247,20 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
               {bar.displayTag}
             </text>
 
-            {/* Title text (inside bar) */}
-            {bar.titleVisible && (
-              <text
-                x={bar.titleX - bar.x}
-                y={bar.height / 2}
-                dominantBaseline="central"
-                fontFamily={FONT_BODY}
-                fontSize={bar.titleFontSize}
-                fill={COLOR_TEXT}
-                style={{ pointerEvents: 'none' }}
-              >
-                {bar.title}
-              </text>
-            )}
+            {/* Title text (inside bar) — always rendered, opacity managed by D3 */}
+            <text
+              className="deck-bar-title"
+              x={bar.titleX - bar.x}
+              data-target-y={bar.height / 2}
+              data-target-font-size={bar.titleFontSize}
+              data-target-opacity={bar.titleVisible ? 1 : 0}
+              dominantBaseline="central"
+              fontFamily={FONT_BODY}
+              fill={COLOR_TEXT}
+              style={{ pointerEvents: 'none' }}
+            >
+              {bar.title}
+            </text>
           </g>
         ))}
       </g>

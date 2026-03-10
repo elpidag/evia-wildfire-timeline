@@ -10,6 +10,9 @@ import {
   CATEGORY_SHADES,
   COLUMN_CATEGORY_ORDER,
   FONT_DISPLAY,
+  FUNDING_GROUP_FILLS,
+  FUNDING_GROUP_LABELS,
+  FUNDING_GROUP_ORDER,
   LABEL_CHAR_HEIGHT_FACTOR
 } from './presentation-constants';
 
@@ -344,12 +347,180 @@ export function computeSlide1Layout(
   };
 }
 
+export function computeSlide2Layout(
+  projects: EvoiaMetaProject[],
+  viewportWidth: number,
+  viewportHeight: number
+): SlideLayout {
+  // --- Filter: only non-B projects ---
+  const filtered = projects.filter((p) => !p.tag.startsWith('B'));
+
+  // --- Margins and title area (same as Slide 1) ---
+  const marginX = Math.round(viewportWidth * 0.05);
+  const marginTop = Math.round(viewportHeight * 0.035);
+  const marginBottom = Math.round(viewportHeight * 0.03);
+
+  const titleFontSize = Math.max(20, Math.min(48, Math.round(viewportWidth * 0.022)));
+  const titleAreaHeight = titleFontSize + Math.round(viewportHeight * 0.025);
+
+  const contentTop = marginTop + titleAreaHeight;
+  const contentHeight = viewportHeight - contentTop - marginBottom;
+  const contentWidth = viewportWidth - marginX * 2;
+
+  const columnGap = Math.round(contentWidth * 0.025);
+  const numColumns = 3;
+  const totalColumnWidth = contentWidth - columnGap * (numColumns - 1);
+  const columnWidth = totalColumnWidth / numColumns;
+
+  // --- Group projects by fundingProvenance, sort by tag within each group ---
+  const grouped = new Map<string, EvoiaMetaProject[]>();
+  for (const project of filtered) {
+    const key = project.fundingProvenance;
+    const list = grouped.get(key) ?? [];
+    list.push(project);
+    grouped.set(key, list);
+  }
+  for (const list of grouped.values()) {
+    list.sort((a, b) => compareTags(a.tag, b.tag));
+  }
+
+  // --- Tag and label sizing (same as Slide 1) ---
+  const tagWidth = Math.max(28, Math.round(columnWidth * 0.08));
+  const tagGap = Math.max(4, Math.round(columnWidth * 0.015));
+  const categoryLabelWidth = Math.max(20, Math.round(columnWidth * 0.06));
+  const barWidth = columnWidth - tagWidth - tagGap - categoryLabelWidth;
+
+  const barGap = Math.max(1, Math.round(contentHeight * 0.003));
+
+  // --- Find label font size and bar height that fit contentHeight ---
+  const labelFontSize = Math.max(16, Math.min(44, Math.round(contentHeight * 0.032)));
+
+  // Binary-search for barHeight: tallest column is PUBLIC with 36 bars
+  let barHeightLow = 6;
+  let barHeightHigh = 40;
+  let barHeight = 20;
+
+  for (let i = 0; i < 20; i++) {
+    barHeight = (barHeightLow + barHeightHigh) / 2;
+
+    // Each column is a single funding group — no category gap, no group headers
+    let maxColHeight = 0;
+    for (const fundingKey of FUNDING_GROUP_ORDER) {
+      const groupProjects = grouped.get(fundingKey) ?? [];
+      const count = groupProjects.length;
+      if (count === 0) continue;
+
+      const barsHeight = count * barHeight + (count - 1) * barGap;
+      const label = FUNDING_GROUP_LABELS[fundingKey] ?? fundingKey.toUpperCase();
+      const lblHeight = labelVerticalExtent(label, labelFontSize);
+      const colHeight = Math.max(barsHeight, lblHeight);
+      if (colHeight > maxColHeight) maxColHeight = colHeight;
+    }
+
+    if (maxColHeight > contentHeight) {
+      barHeightHigh = barHeight;
+    } else {
+      barHeightLow = barHeight;
+    }
+  }
+
+  barHeight = Math.floor(barHeightLow);
+  barHeight = Math.max(6, Math.min(30, barHeight));
+
+  const tagFontSize = Math.max(8, Math.min(16, Math.round(barHeight * 0.75)));
+  const titleFontSizeBar = Math.max(7, Math.min(14, Math.round(barHeight * 0.62)));
+
+  // Approximate characters that fit inside the bar
+  const charWidth = titleFontSizeBar * 0.48;
+  const barPaddingX = Math.max(4, Math.round(barWidth * 0.015));
+  const maxTitleChars = Math.max(0, Math.floor((barWidth - barPaddingX * 2) / charWidth));
+
+  // --- Place bars (no group headers in Slide 2) ---
+  const bars: BarLayout[] = [];
+  const categoryLabels: CategoryLabelLayout[] = [];
+
+  for (let colIndex = 0; colIndex < numColumns; colIndex++) {
+    const fundingKey = FUNDING_GROUP_ORDER[colIndex];
+    const colX = marginX + colIndex * (columnWidth + columnGap);
+    const groupProjects = grouped.get(fundingKey) ?? [];
+    if (groupProjects.length === 0) continue;
+
+    const fill = FUNDING_GROUP_FILLS[fundingKey] ?? '#e4e7ed';
+
+    // Compute group height for centering
+    const count = groupProjects.length;
+    const barsHeight = count * barHeight + (count - 1) * barGap;
+    const label = FUNDING_GROUP_LABELS[fundingKey] ?? fundingKey.toUpperCase();
+    const lblHeight = labelVerticalExtent(label, labelFontSize);
+    const groupHeight = Math.max(barsHeight, lblHeight);
+
+    // Center bars vertically within the group if label is taller
+    const barsOffsetY = (groupHeight - barsHeight) / 2;
+    let cursor = contentTop + barsOffsetY;
+
+    for (let i = 0; i < groupProjects.length; i++) {
+      const project = groupProjects[i];
+      if (i > 0) cursor += barGap;
+
+      const barX = colX + tagWidth + tagGap;
+      const barY = cursor;
+
+      bars.push({
+        id: project.id,
+        x: barX,
+        y: barY,
+        width: barWidth,
+        height: barHeight,
+        fill,
+        tag: project.tag,
+        displayTag: formatDisplayTag(project.tag),
+        tagX: colX + tagWidth,
+        tagY: barY + barHeight / 2,
+        title: truncateTitle(project.displayTitle, maxTitleChars),
+        titleX: barX + barPaddingX,
+        titleY: barY + barHeight / 2,
+        titleVisible: maxTitleChars >= 4,
+        tagFontSize,
+        titleFontSize: titleFontSizeBar
+      });
+
+      cursor += barHeight;
+    }
+
+    // Column label: rotated 90° CW, centered on group
+    const labelX = colX + tagWidth + tagGap + barWidth + categoryLabelWidth / 2;
+    const labelY = contentTop + groupHeight / 2;
+
+    categoryLabels.push({
+      category: fundingKey,
+      label,
+      x: labelX,
+      y: labelY,
+      height: groupHeight,
+      fontSize: labelFontSize
+    });
+  }
+
+  return {
+    bars,
+    groupHeaders: [],
+    categoryLabels,
+    titleText: 'FUNDING ORIGIN',
+    titleFontFamily: FONT_DISPLAY,
+    titleFontSize,
+    titleX: marginX + tagWidth,
+    titleY: marginTop + titleFontSize * 0.88
+  };
+}
+
 export function computeSlideLayout(
   projects: EvoiaMetaProject[],
   viewportWidth: number,
   viewportHeight: number,
   slideIndex: number
 ): SlideLayout {
-  // Only Slide 1 implemented for now; future slides will be added here.
+  if (slideIndex === 1) {
+    return computeSlide2Layout(projects, viewportWidth, viewportHeight);
+  }
   return computeSlide1Layout(projects, viewportWidth, viewportHeight);
 }

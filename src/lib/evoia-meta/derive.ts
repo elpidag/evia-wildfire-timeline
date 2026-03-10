@@ -28,25 +28,6 @@ const SLASH_DATE_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/;
 const RELATIVE_PATTERN = /(month|months|year|years|no exact date|ongoing|tbd|until|from the moment)/i;
 const MISSING_END_DATE_VALUES = new Set(['not defined', 'not available', '-', 'n/a', 'na']);
 
-const PUBLIC_FUNDER_VALUES = [
-  'Regional Program of Sterea Ellada 2021-2027',
-  'National Development Program 2021-2025',
-  'Recovery & Resilience Plan',
-  'Green Fund',
-  'Regional Development Program 2021-2025',
-  'Regional Operational Program of Sterea Ellada 2014-2020 (ΠΕΠ 2014-2020)',
-  'Competitiveness Programme 2021-2027',
-  'National Employment Service (Δ.ΥΠ.Α)',
-  'National Infrastructure Development Program',
-  'Sectoral Development Program of the Ministry of Education 2021-2025',
-  'Rural Development Programme',
-  'Good Governance - Institutions and Transparency / EEA Grants 2014–2021',
-  'OFYPEKA',
-  'PEKA (former YMEPERAA)'
-] as const;
-
-const PUBLIC_FUNDER_SET = new Set(PUBLIC_FUNDER_VALUES.map((value) => normalizeText(value)));
-
 export const MEGA_PROJECT_THRESHOLD = 20_000_000;
 
 function normalizeText(value: string): string {
@@ -206,16 +187,16 @@ export function deriveFundingProvenance(fundedByRaw: string | null): FundingProv
   }
 
   const normalized = normalizeText(fundedByRaw);
-  if (normalized === normalizeText('Donations')) {
-    return 'private_philanthropy';
-  }
-  if (normalized === normalizeText('Other')) {
+
+  if (normalized === 'not defined' || normalized === 'other') {
     return 'mixed_unclear';
   }
-  if (PUBLIC_FUNDER_SET.has(normalized)) {
-    return 'public';
+
+  if (normalized === 'donations' || normalized === 'diazoma') {
+    return 'private_philanthropy';
   }
-  return 'mixed_unclear';
+
+  return 'public';
 }
 
 export function deriveSourceTable(tag: string, rowNumber: number): 'A' | 'B' | 'AB' {

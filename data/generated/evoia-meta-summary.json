@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-10T20:55:49.917Z",
+  "generatedAt": "2026-03-10T21:34:36.976Z",
   "todayISO": "2026-03-10",
   "totalProjects": 77,
   "totalBudget": 394305350,
@@ -47,8 +47,8 @@
   ],
   "fundingProvenanceCounts": {
     "public": 42,
-    "private_philanthropy": 12,
-    "mixed_unclear": 23
+    "private_philanthropy": 13,
+    "mixed_unclear": 22
   },
   "timelineStatusCounts": {
     "completed": 20,

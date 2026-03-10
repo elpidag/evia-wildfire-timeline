@@ -63,6 +63,21 @@ export const COLUMN_CATEGORY_ORDER: string[][] = [
   ['Agrifood sector', 'Culture', 'General']
 ];
 
+/** Slide 2: Funding origin groups — column order left to right */
+export const FUNDING_GROUP_ORDER = ['public', 'private_philanthropy', 'mixed_unclear'] as const;
+
+export const FUNDING_GROUP_LABELS: Record<string, string> = {
+  public: 'PUBLIC',
+  mixed_unclear: 'OTHER',
+  private_philanthropy: 'PRIVATE'
+};
+
+export const FUNDING_GROUP_FILLS: Record<string, string> = {
+  public: '#d4d8ec',
+  mixed_unclear: '#e0e0e0',
+  private_philanthropy: '#ebd4d4'
+};
+
 export const TRANSITION_MS = 600;
 
 export const FONT_DISPLAY = "'bebas-neue-pro', 'Bebas Neue Pro', 'Bebas Neue', 'Arial Narrow', sans-serif";
