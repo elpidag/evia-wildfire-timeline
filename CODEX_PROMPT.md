@@ -29,8 +29,6 @@ Do not use a generic timeline plugin as the main solution.
 Design language should be restrained and publication-grade, inspired by:
 
 - Forensic Architecture
-- Financial Times
-- New York Times
 
 That means:
 

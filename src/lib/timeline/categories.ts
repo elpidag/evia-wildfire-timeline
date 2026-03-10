@@ -2,26 +2,26 @@
 import type { TimelineEvent } from './types';
 
 const categoryPalette: Partial<Record<TimelineEvent['category'], string>> = {
-  wildfire: '#93342a',
-  'fire-season': '#ad4b3c',
-  suppression: '#714e2d',
-  evacuation: '#8f5b33',
-  weather: '#536878',
-  flood: '#4d6272',
-  'forestry-policy': '#3f5564',
-  legislation: '#364c5a',
-  'spatial-planning': '#5a5f74',
-  'reconstruction-governance': '#8f7a45',
-  contract: '#9f8a55',
-  donation: '#8f845f',
-  'municipal-action': '#6a6c5a',
-  'state-agency-action': '#5b5f54',
-  'civil-society-action': '#6e596f',
-  protest: '#7b4b55',
-  election: '#554e73',
-  'private-actor': '#635d47',
-  'study-report': '#59646b',
-  infrastructure: '#5f624f'
+  wildfire: '#c74949',
+  'fire-season': '#d66b5f',
+  suppression: '#b85f5c',
+  evacuation: '#d7b9a4',
+  weather: '#4f60ad',
+  flood: '#5f72ba',
+  'forestry-policy': '#3f4fa1',
+  legislation: '#334496',
+  'spatial-planning': '#7a86b8',
+  'reconstruction-governance': '#8a95bf',
+  contract: '#9aa3c3',
+  donation: '#aab1c4',
+  'municipal-action': '#727c9d',
+  'state-agency-action': '#646f93',
+  'civil-society-action': '#9ea5bf',
+  protest: '#b45873',
+  election: '#5867a8',
+  'private-actor': '#98a0b8',
+  'study-report': '#a3abc0',
+  infrastructure: '#6d78a8'
 };
 
 const categoryNameMap: Record<TimelineEvent['category'], string> = {
@@ -47,7 +47,7 @@ const categoryNameMap: Record<TimelineEvent['category'], string> = {
   infrastructure: 'Infrastructure'
 };
 
-const fallbackColor = '#6f6a61';
+const fallbackColor = '#8a92a5';
 
 export const categoryOrder: TimelineEvent['category'][] = [...categoryValues];
 export type CategorySymbol = 'circle' | 'square' | 'diamond' | 'triangle';

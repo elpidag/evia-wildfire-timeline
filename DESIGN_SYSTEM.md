@@ -5,8 +5,6 @@
 The site should feel like a cross between:
 
 - **Forensic Architecture** — evidentiary, spatial, restrained, analytical
-- **Financial Times** — editorial clarity, tonal warmth, typographic confidence
-- **New York Times** — narrative hierarchy, strong reading rhythm, quiet authority
 
 The result should be:
 

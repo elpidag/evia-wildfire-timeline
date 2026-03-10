@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ReconstructionWebsiteModule from '../components/evoia-meta/ReconstructionWebsiteModule.tsx';
+import { evoiaMetaProjects, evoiaMetaSummary } from '../lib/evoia-meta/data';
+---
+
+<BaseLayout title="Reconstruction | Evia Wildfire Timeline" description="Evia Meta reconstruction programme module with scrollytelling timeline and supporting structural charts.">
+  <section class="page-intro">
+    <p class="eyebrow">Reconstruction</p>
+    <h1>Evia Meta reconstruction programme</h1>
+    <p>
+      Editorial module built from the generated register dataset. The visual flow moves from an evidence-table reading
+      to the published horizon timeline and then to structural budget and funding provenance views.
+    </p>
+    <p>
+      Current snapshot: {evoiaMetaSummary.totalProjects} projects, announced budget
+      {' '}
+      {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(
+        evoiaMetaSummary.totalBudget
+      )}
+      .
+    </p>
+    <nav class="nav-links">
+      <a href="/presentation/reconstruction">Open presentation mode</a>
+      <a href="/timeline">Main wildfire timeline</a>
+    </nav>
+  </section>
+
+  <ReconstructionWebsiteModule client:load projects={evoiaMetaProjects} summary={evoiaMetaSummary} />
+</BaseLayout>

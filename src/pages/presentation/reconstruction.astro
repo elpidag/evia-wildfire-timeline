@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AnnouncedProjectsDeck from '../../components/evoia-meta/AnnouncedProjectsDeck';
+import { evoiaMetaProjects } from '../../lib/evoia-meta/data';
+---
+
+<BaseLayout
+  title="Presentation | Reconstruction | Evia Wildfire Timeline"
+  description="Presentation deck for announced Evia Meta reconstruction projects."
+>
+  <AnnouncedProjectsDeck client:only="react" projects={evoiaMetaProjects} />
+
+  <style is:global>
+    body {
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .site-shell {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+    }
+  </style>
+</BaseLayout>

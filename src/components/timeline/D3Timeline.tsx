@@ -512,7 +512,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 const widthPx = Math.max(eventMinWidth, xEnd - xStart);
 
                 const markerSize = isSelected ? 5.6 : 4.4;
-                const markerStroke = isSelected ? 'var(--color-text)' : '#f8f6f1';
+                const markerStroke = isSelected ? 'var(--color-text)' : '#ffffff';
                 const markerStrokeWidth = isSelected ? 1.2 : 0.8;
 
                 const locationLabel = event.band === 'evia' ? 'Evia island' : 'rest of Greece';

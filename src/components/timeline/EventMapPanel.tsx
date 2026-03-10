@@ -141,8 +141,8 @@ function ensureMapLayers(map: Map): void {
       source: contextSourceId,
       filter: ['==', ['geometry-type'], 'Polygon'],
       paint: {
-        'fill-color': '#7b766f',
-        'fill-opacity': 0.12
+        'fill-color': '#9ca4b4',
+        'fill-opacity': 0.14
       }
     });
   }
@@ -153,7 +153,7 @@ function ensureMapLayers(map: Map): void {
       type: 'line',
       source: contextSourceId,
       paint: {
-        'line-color': '#6c6760',
+        'line-color': '#7c849d',
         'line-width': 1
       }
     });
@@ -167,9 +167,9 @@ function ensureMapLayers(map: Map): void {
       filter: ['==', ['geometry-type'], 'Point'],
       paint: {
         'circle-radius': 4,
-        'circle-color': '#726d66',
+        'circle-color': '#7c849d',
         'circle-stroke-width': 1,
-        'circle-stroke-color': '#f8f6f1'
+        'circle-stroke-color': '#ffffff'
       }
     });
   }
@@ -188,8 +188,8 @@ function ensureMapLayers(map: Map): void {
       source: selectedSourceId,
       filter: ['==', ['geometry-type'], 'Polygon'],
       paint: {
-        'fill-color': '#8f2f23',
-        'fill-opacity': 0.24
+        'fill-color': '#c74949',
+        'fill-opacity': 0.22
       }
     });
   }
@@ -200,7 +200,7 @@ function ensureMapLayers(map: Map): void {
       type: 'line',
       source: selectedSourceId,
       paint: {
-        'line-color': '#6f241b',
+        'line-color': '#a73f40',
         'line-width': 2.2
       }
     });
@@ -214,9 +214,9 @@ function ensureMapLayers(map: Map): void {
       filter: ['==', ['geometry-type'], 'Point'],
       paint: {
         'circle-radius': 6,
-        'circle-color': '#8f2f23',
+        'circle-color': '#c74949',
         'circle-stroke-width': 1,
-        'circle-stroke-color': '#1b1a18'
+        'circle-stroke-color': '#1f2f8f'
       }
     });
   }

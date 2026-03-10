@@ -1,124 +1,73 @@
-# Evia Wildfire Timeline
+# Evia Meta Reconstruction — Codex Pack
 
-Publication-grade investigative website for researching actors, decisions, and processes around the 2021 Evia wildfire within a 1970-today timeline.
+This pack is the implementation brief for a focused data-visualization module inside the broader Evia Wildfire Timeline website.
 
-## Stack
+## Goal
 
-- Astro for static shell and routes
-- React + TypeScript for interactive workspace
-- D3 for custom timeline engine
-- MapLibre GL JS for synchronized map
-- Keystatic for Git-backed editorial entry
-- Zod + build scripts for strict content validation
+Build a compact, publication-grade module that analyzes the post-fire reconstruction projects listed on the Evia Meta panorama site and in the workbook `EviaMeta_Works.xlsx`.
 
-## Current scope
+The module should do three things well:
 
-Implemented through Phase 7:
+1. **Audit the programme**
+   - searchable / sortable evidence table
+   - clear raw fields
+   - explicit uncertainty
 
-- D3 timeline with zoom/pan, category lanes, point/duration events
-- Detail panel with actors, places, sources, and media
-- Lazy-loaded MapLibre panel synchronized to selection
-- Filters for category, actor, place, tags, and date range
-- URL query state for selection and filters
-- Reset + stable empty states
-- Hardened Keystatic field guidance and validation constraints
-- Responsive, accessibility, and performance-oriented refinements
+2. **Reveal temporal accountability**
+   - step-based published-horizon timeline
+   - clear distinction between completed, overdue, ongoing, and undated projects
+   - no invented start dates
 
-## Local development
+3. **Reveal structural patterns**
+   - budget by category, with include/exclude mega-project toggle
+   - funding provenance by category
 
-Requirements:
+## Required outputs
 
-- Node.js 20+
-- npm
+### Website route
+A scrollytelling route that combines narrative text and the visuals.
 
-Install and run:
+Recommended route:
+- `/reconstruction`
 
-```bash
-npm install
-npm run build:data
-npm run dev
-```
+### Presentation route
+A classroom-friendly presentation view using the same components and same data.
 
-Timeline workspace:
+Recommended route:
+- `/presentation/reconstruction`
 
-- `http://localhost:4321/timeline`
+## Primary visual package
 
-Keystatic editor (local mode):
+1. Audit table
+2. Published-horizon timeline with discrete steps
+3. Budget by category
+4. Funding provenance by category
 
-- `http://localhost:4321/keystatic`
+## Files in this pack
 
-## Scripts
+- `AGENTS.md`
+- `MODULE_BRIEF.md`
+- `DATA_AUDIT.md`
+- `DATA_INGESTION_SPEC.md`
+- `VISUALIZATION_SPEC.md`
+- `IMPLEMENTATION_PLAN.md`
+- `CODEX_WORKFLOW.md`
+- `SOURCES_AND_REFERENCES.md`
+- `.codex/config.toml`
+- `prompts/*.md`
 
-- `npm run dev`: Astro dev server
-- `npm run build:data`: compile content to `public/data/*`
-- `npm run validate:content`: validate content/references only
-- `npm run typecheck`: Astro/TypeScript check
-- `npm run lint`: ESLint
-- `npm run build`: data compile + validation + Astro production build
-- `npm run preview`: preview production output
+## Implementation strategy
 
-## Data and editing model
+Use a build-time pipeline:
 
-Authoring source:
+`raw xlsx -> normalize -> derive -> generated json -> React/D3 charts`
 
-- `src/content/events`
-- `src/content/actors`
-- `src/content/places`
-- `src/content/pages`
-- `src/references/sources.json`
-- `src/references/media.json`
+The UI must read generated JSON only.
 
-Compiled artifacts:
+## Why this approach
 
-- `public/data/events.index.json`
-- `public/data/events.geojson`
-- `public/data/events.by-year/*.json`
-- `public/data/actors.json`
-- `public/data/places.json`
-- `public/data/sources.json`
-- `public/data/media.json`
-
-The app reads compiled artifacts, not raw markdown, at runtime.
-
-## URL state
-
-Supported timeline query parameters:
-
-- `event`
-- `category`
-- `actors`
-- `places`
-- `tags`
-- `from`
-- `to`
-
-Example:
-
-`/timeline?event=evia-2021-wildfire-front-duration&category=wildfire&actors=actor-hellenic-fire-service&from=2021-08-01&to=2021-08-31`
-
-## Editorial instructions
-
-Detailed non-developer editing workflow:
-
-- [EDITING.md](./EDITING.md)
-
-Canonical product/editorial references:
-
-- `PROJECT_BRIEF.md`
-- `PRODUCT_SPEC.md`
-- `TECH_ARCHITECTURE.md`
-- `DATA_MODEL.md`
-- `DESIGN_SYSTEM.md`
-- `EDITORIAL_WORKFLOW.md`
-
-## Quality gate
-
-Run before committing:
-
-```bash
-npm run build:data
-npm run validate:content
-npm run typecheck
-npm run lint
-npm run build
-```
+- minimal runtime weight
+- stable diffs in Git
+- easy manual correction
+- easy reuse in website and presentation modes
+- good fit for Astro islands

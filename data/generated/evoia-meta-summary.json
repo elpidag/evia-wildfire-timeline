@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-03-10T21:34:36.976Z",
+  "todayISO": "2026-03-10",
+  "totalProjects": 77,
+  "totalBudget": 394305350,
+  "categories": [
+    {
+      "category": "Infrastructure",
+      "projectCount": 5,
+      "totalBudget": 235500000
+    },
+    {
+      "category": "Human Resources",
+      "projectCount": 10,
+      "totalBudget": 112826000
+    },
+    {
+      "category": "Forest",
+      "projectCount": 16,
+      "totalBudget": 24502580
+    },
+    {
+      "category": "Tourism",
+      "projectCount": 8,
+      "totalBudget": 6863000
+    },
+    {
+      "category": "Culture",
+      "projectCount": 15,
+      "totalBudget": 6198615
+    },
+    {
+      "category": "Healthcare & Welfare",
+      "projectCount": 11,
+      "totalBudget": 3695155
+    },
+    {
+      "category": "Agrifood sector",
+      "projectCount": 10,
+      "totalBudget": 2820000
+    },
+    {
+      "category": "General",
+      "projectCount": 2,
+      "totalBudget": 1900000
+    }
+  ],
+  "fundingProvenanceCounts": {
+    "public": 42,
+    "private_philanthropy": 13,
+    "mixed_unclear": 22
+  },
+  "timelineStatusCounts": {
+    "completed": 20,
+    "past_due_unfinished": 21,
+    "ongoing": 26,
+    "undated": 10
+  },
+  "dateExtent": {
+    "minIndicativeEndDateISO": "2022-02-28",
+    "maxIndicativeEndDateISO": "2031-12-31",
+    "usableEndDateCount": 63,
+    "undatedCount": 14
+  },
+  "megaProjectStats": {
+    "threshold": 20000000,
+    "count": 4,
+    "totalBudget": 339000000,
+    "shareOfTotalBudget": 0.8597397930309594
+  },
+  "parsingWarnings": []
+}
