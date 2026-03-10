@@ -8,7 +8,6 @@ import {
   FONT_DISPLAY,
   FONT_BODY,
   COLOR_TEXT,
-  COLOR_MUTED,
   COLOR_CATEGORY_LABEL
 } from '@/lib/evoia-meta/presentation-constants';
 
@@ -134,6 +133,7 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         fontFamily={layout.titleFontFamily}
         fontSize={layout.titleFontSize}
         fill={COLOR_TEXT}
+        textAnchor="end"
         letterSpacing="0.004em"
       >
         {layout.titleText}
@@ -167,8 +167,8 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
           dominantBaseline="central"
           fontFamily={FONT_BODY}
           fontSize={header.fontSize}
-          fontStyle="italic"
-          fill={COLOR_MUTED}
+          fontWeight={700}
+          fill={COLOR_TEXT}
           style={{ pointerEvents: 'none' }}
         >
           {header.text}

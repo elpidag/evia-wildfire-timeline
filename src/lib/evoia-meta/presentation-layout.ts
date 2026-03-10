@@ -274,9 +274,9 @@ export function computeSlide1Layout(
           groupHeaders.push({
             key: `${category}-${project.parentGroupTitle}`,
             text: truncateTitle(`${project.parentGroupTitle}:`, headerMaxChars),
-            x: colX,
+            x: colX + tagWidth + tagGap + barPaddingX,
             y: cursor,
-            width: barWidth + tagWidth + tagGap,
+            width: barWidth - barPaddingX,
             height: headerHeight,
             fontSize: headerFontSize
           });
@@ -339,7 +339,7 @@ export function computeSlide1Layout(
     titleText: 'ANNOUNCED PROJECTS',
     titleFontFamily: FONT_DISPLAY,
     titleFontSize,
-    titleX: marginX,
+    titleX: marginX + tagWidth,
     titleY: marginTop + titleFontSize * 0.88
   };
 }
