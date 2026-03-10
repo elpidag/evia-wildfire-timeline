@@ -10,6 +10,7 @@ import {
 import { selectFundingProvenanceByCategory } from '@/lib/evoia-meta/selectors';
 import type { EvoiaMetaProject, FundingProvenance } from '@/lib/evoia-meta/schema';
 import { useElementSize } from '@/lib/utils/useElementSize';
+import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
 
 type FundingProvenanceByCategoryProps = {
   projects: EvoiaMetaProject[];
@@ -22,29 +23,6 @@ type HoveredSegment = {
   count: number;
   share: number;
 };
-
-function usePrefersReducedMotion(): boolean {
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => {
-      setReducedMotion(mediaQuery.matches);
-    };
-
-    update();
-    mediaQuery.addEventListener('change', update);
-    return () => {
-      mediaQuery.removeEventListener('change', update);
-    };
-  }, []);
-
-  return reducedMotion;
-}
 
 function numberData(element: Element, key: string, fallback = 0): number {
   const value = Number((element as HTMLElement).dataset[key]);
@@ -92,11 +70,11 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
       .tickFormat((value) => formatPercent(Number(value)));
 
     axisSelection.transition().duration(transitionMs).ease(easeCubicOut).call(axis);
-    axisSelection.select('.domain').attr('stroke', '#cec8bf');
-    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', '#ddd8ce').attr('y2', 6);
+    axisSelection.select('.domain').attr('stroke', 'var(--color-swatch-gray-3)');
+    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', 'var(--color-swatch-gray-2)').attr('y2', 6);
     axisSelection
       .selectAll<SVGTextElement, unknown>('.tick text')
-      .attr('fill', '#605b55')
+      .attr('fill', 'var(--color-muted)')
       .attr('font-size', 11)
       .attr('font-family', 'var(--font-sans)');
   }, [xScale, tickValues, transitionMs]);
@@ -170,7 +148,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
           {fundingProvenanceOrder.map((fundingProvenance) => (
             <span
               key={fundingProvenance}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#4f4a44' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: 'var(--color-muted)' }}
             >
               <span
                 aria-hidden
@@ -178,7 +156,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                   width: '0.7rem',
                   height: '0.7rem',
                   background: fundingProvenanceColors[fundingProvenance],
-                  border: '1px solid rgba(0, 0, 0, 0.25)',
+                  border: '1px solid var(--color-rule)',
                   display: 'inline-block'
                 }}
               />
@@ -208,7 +186,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                   x2={xScale(tickValue)}
                   y1={0}
                   y2={innerHeight}
-                  stroke="#ece7de"
+                  stroke="var(--color-swatch-gray-1)"
                   strokeWidth={1}
                 />
               ))}
@@ -230,7 +208,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                         textAnchor="end"
                         fontFamily="var(--font-sans)"
                         fontSize={12}
-                        fill="#2f2b27"
+                        fill="var(--color-text)"
                       >
                         {row.category}
                       </text>
@@ -240,8 +218,8 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                         y={0}
                         width={innerWidth}
                         height={barHeight}
-                        fill="#f4f1ea"
-                        stroke="#e2ddd3"
+                        fill="var(--color-surface-soft)"
+                        stroke="var(--color-rule)"
                         strokeWidth={0.8}
                       />
 
@@ -263,7 +241,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                               width={width}
                               height={barHeight}
                               fill={fundingProvenanceColors[fundingProvenance]}
-                              stroke="rgba(0, 0, 0, 0.28)"
+                              stroke="var(--color-surface)"
                               strokeWidth={hoveredSegment?.category === row.category && hoveredSegment.fundingProvenance === fundingProvenance ? 1.3 : 0.8}
                               data-target-x={xStart}
                               data-target-width={width}
@@ -290,7 +268,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                                 textAnchor="middle"
                                 fontFamily="var(--font-sans)"
                                 fontSize={10}
-                                fill="#f8f6f2"
+                                fill="#ffffff"
                               >
                                 {formatPercent(share)}
                               </text>
@@ -306,7 +284,7 @@ export default function FundingProvenanceByCategory({ projects, className }: Fun
                         textAnchor="start"
                         fontFamily="var(--font-sans)"
                         fontSize={11}
-                        fill="#5f5952"
+                        fill="var(--color-muted)"
                       >
                         {formatProjectCount(row.totalProjects)}
                       </text>

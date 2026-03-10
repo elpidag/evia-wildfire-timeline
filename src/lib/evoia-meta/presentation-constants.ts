@@ -66,8 +66,6 @@ export const TRANSITION_MS = 600;
 
 export const FONT_DISPLAY = "'bebas-neue-pro', 'Bebas Neue Pro', 'Bebas Neue', 'Arial Narrow', sans-serif";
 export const FONT_BODY = "'adobe-garamond-pro', 'Adobe Garamond Pro', Garamond, 'Times New Roman', serif";
-export const FONT_SANS = "'neue-plak-text', 'neue-plak', 'Neue Plak', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-
 export const COLOR_TEXT = '#1f2f8f';
 export const COLOR_MUTED = '#5f6a93';
 export const COLOR_CATEGORY_LABEL = '#c3c8d3';

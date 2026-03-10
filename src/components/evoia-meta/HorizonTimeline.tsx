@@ -11,6 +11,7 @@ import {
 } from 'd3';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useElementSize } from '@/lib/utils/useElementSize';
+import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
 import type { EvoiaMetaProject, FundingProvenance, TimelineStatus } from '@/lib/evoia-meta/schema';
 
 export type HorizonTimelineStep = 'table' | 'bars' | 'today-line' | 'status-color' | 'funding-split';
@@ -94,15 +95,15 @@ const STATUS_LABELS: Record<TimelineStatus, string> = {
   undated: 'Undated'
 };
 const STATUS_COLORS: Record<TimelineStatus, string> = {
-  completed: '#3f5b40',
-  past_due_unfinished: '#8f2f23',
-  ongoing: '#5c6269',
-  undated: '#948c80'
+  completed: '#3547aa',
+  past_due_unfinished: '#c74949',
+  ongoing: '#868ea0',
+  undated: '#b2b8c6'
 };
 const FUNDING_COLORS: Record<FundingProvenance, string> = {
-  public: '#355c7d',
-  private_philanthropy: '#8d6b2f',
-  mixed_unclear: '#6f665f'
+  public: '#273891',
+  private_philanthropy: '#c74949',
+  mixed_unclear: '#9ca4b4'
 };
 
 const formatAxisDate = timeFormat('%Y');
@@ -112,29 +113,6 @@ const euroFormatter = new Intl.NumberFormat('en-GB', {
   currency: 'EUR',
   maximumFractionDigits: 0
 });
-
-function usePrefersReducedMotion(): boolean {
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => {
-      setReducedMotion(mediaQuery.matches);
-    };
-
-    update();
-    mediaQuery.addEventListener('change', update);
-    return () => {
-      mediaQuery.removeEventListener('change', update);
-    };
-  }, []);
-
-  return reducedMotion;
-}
 
 function parseIsoDate(isoDate: string | null): Date | null {
   if (!isoDate) {
@@ -183,7 +161,7 @@ function statusOrFundingColor(step: HorizonTimelineStep, project: EvoiaMetaProje
   if (step === 'funding-split') {
     return FUNDING_COLORS[project.fundingProvenance];
   }
-  return '#5d5851';
+  return '#8a92a5';
 }
 
 function parseToday(todayISO?: string): Date {
@@ -403,11 +381,11 @@ export default function HorizonTimeline({
       .attr('opacity', layout.showTimelineAxis ? 1 : 0)
       .call(axis);
 
-    axisSelection.select('.domain').attr('stroke', '#c8c2b7');
-    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', '#d8d3c8').attr('y2', 6);
+    axisSelection.select('.domain').attr('stroke', 'var(--color-swatch-gray-3)');
+    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', 'var(--color-swatch-gray-2)').attr('y2', 6);
     axisSelection
       .selectAll<SVGTextElement, unknown>('.tick text')
-      .attr('fill', '#5f5a54')
+      .attr('fill', 'var(--color-muted)')
       .attr('font-size', 11)
       .attr('font-family', 'var(--font-sans)');
   }, [layout.xScale, layout.xTicks, layout.showTimelineAxis, transitionMs]);
@@ -450,7 +428,7 @@ export default function HorizonTimeline({
         return numberData(this, 'targetWidth');
       })
       .attr('fill', function updateBarFill() {
-        return stringData(this, 'targetFill', '#5d5851');
+        return stringData(this, 'targetFill', '#8a92a5');
       })
       .attr('opacity', function updateBarOpacity() {
         return numberData(this, 'targetOpacity');
@@ -540,7 +518,7 @@ export default function HorizonTimeline({
             x={0}
             y={-14}
             fontSize={11}
-            fill="#625d56"
+            fill="var(--color-muted)"
             fontFamily="var(--font-sans)"
             letterSpacing="0.04em"
           >
@@ -552,7 +530,7 @@ export default function HorizonTimeline({
             x2={layout.baselineX}
             y1={0}
             y2={layout.contentHeight}
-            stroke="#d5cec2"
+            stroke="var(--color-swatch-gray-3)"
             strokeDasharray="2 3"
             opacity={layout.showTimelineAxis ? 1 : 0}
           />
@@ -563,7 +541,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -574,7 +552,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -585,7 +563,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -596,7 +574,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -607,7 +585,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -618,7 +596,7 @@ export default function HorizonTimeline({
               y={0}
               fontSize={11}
               fontFamily="var(--font-sans)"
-              fill="#66605a"
+              fill="var(--color-muted)"
               letterSpacing="0.04em"
               opacity={step === 'table' ? 1 : 0}
             >
@@ -633,7 +611,7 @@ export default function HorizonTimeline({
               x2={layout.xScale(tick)}
               y1={0}
               y2={layout.axisY - 8}
-              stroke="#ece7de"
+              stroke="var(--color-swatch-gray-1)"
               strokeWidth={1}
               opacity={layout.showTimelineAxis ? 1 : 0}
             />
@@ -643,13 +621,13 @@ export default function HorizonTimeline({
             .filter((entry): entry is Extract<LayoutEntry, { kind: 'section' }> => entry.kind === 'section')
             .map((entry) => (
               <g key={entry.id} transform={`translate(0, ${entry.y})`} opacity={step === 'table' ? 0 : 1}>
-                <line x1={0} x2={layout.chartWidth} y1={0} y2={0} stroke="#d7d1c7" strokeDasharray="3 3" />
+                <line x1={0} x2={layout.chartWidth} y1={0} y2={0} stroke="var(--color-swatch-gray-3)" strokeDasharray="3 3" />
                 <text
                   x={6}
                   y={-5}
                   fontSize={11}
                   fontFamily="var(--font-sans)"
-                  fill="#615c55"
+                  fill="var(--color-muted)"
                   letterSpacing="0.04em"
                 >
                   {entry.label}
@@ -686,7 +664,7 @@ export default function HorizonTimeline({
                       y={-9}
                       width={layout.chartWidth + layout.margin.left - 4}
                       height={18}
-                      fill={isSelected ? '#ece7de' : '#f7f4ee'}
+                      fill={isSelected ? 'var(--color-surface-muted)' : 'var(--color-surface-soft)'}
                       opacity={0}
                       data-target-opacity={rowOpacity}
                     />
@@ -698,7 +676,7 @@ export default function HorizonTimeline({
                       rx={2}
                       ry={2}
                       fill={entry.barColor}
-                      stroke={isFocused ? '#2b2824' : '#4f4a44'}
+                      stroke={isFocused ? 'var(--color-swatch-blue-2)' : 'var(--color-swatch-gray-6)'}
                       strokeWidth={isFocused ? 1.2 : 0.6}
                       opacity={0}
                       data-target-x={entry.barX}
@@ -716,7 +694,7 @@ export default function HorizonTimeline({
                       fontFamily="var(--font-sans)"
                       fontSize={12}
                       fontWeight={isSelected ? 700 : 500}
-                      fill={isFocused ? '#201d1a' : '#413d37'}
+                      fill={isFocused ? 'var(--color-text)' : 'var(--color-swatch-blue-2)'}
                       opacity={0}
                       data-target-opacity={entry.timelineLabelOpacity}
                     >
@@ -730,7 +708,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={11}
-                      fill="#605b54"
+                      fill="var(--color-muted)"
                       opacity={0}
                       data-target-opacity={entry.timelineLabelOpacity}
                     >
@@ -744,7 +722,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#2c2925"
+                      fill="var(--color-text)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -757,7 +735,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#2c2925"
+                      fill="var(--color-text)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -770,7 +748,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#46413b"
+                      fill="var(--color-muted)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -783,7 +761,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#46413b"
+                      fill="var(--color-muted)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -796,7 +774,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#46413b"
+                      fill="var(--color-muted)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -809,7 +787,7 @@ export default function HorizonTimeline({
                       dy="0.32em"
                       fontFamily="var(--font-sans)"
                       fontSize={12}
-                      fill="#46413b"
+                      fill="var(--color-muted)"
                       opacity={0}
                       data-target-opacity={entry.tableLabelOpacity}
                     >
@@ -826,7 +804,7 @@ export default function HorizonTimeline({
             x2={layout.todayX}
             y1={0}
             y2={layout.axisY - 8}
-            stroke="#8f2f23"
+            stroke="var(--color-accent)"
             strokeWidth={1.4}
             strokeDasharray="4 3"
             opacity={layout.showTodayLine ? 1 : 0}
@@ -836,7 +814,7 @@ export default function HorizonTimeline({
             y={16}
             fontSize={11}
             fontFamily="var(--font-sans)"
-            fill="#8f2f23"
+            fill="var(--color-accent)"
             opacity={layout.showTodayLine ? 1 : 0}
           >
             Today
@@ -850,7 +828,7 @@ export default function HorizonTimeline({
             textAnchor="end"
             fontSize={11}
             fontFamily="var(--font-sans)"
-            fill="#615c55"
+            fill="var(--color-muted)"
           >
             {layout.rowCount} projects · Total announced budget {euroFormatter.format(projects.reduce((sum, project) => sum + (project.announcedBudget ?? 0), 0))}
           </text>

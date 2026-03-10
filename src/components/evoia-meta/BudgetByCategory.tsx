@@ -4,6 +4,7 @@ import { formatEuro, formatEuroCompact, formatProjectCount } from '@/lib/evoia-m
 import { selectBudgetByCategory } from '@/lib/evoia-meta/selectors';
 import type { EvoiaMetaProject } from '@/lib/evoia-meta/schema';
 import { useElementSize } from '@/lib/utils/useElementSize';
+import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
 
 type BudgetByCategoryProps = {
   projects: EvoiaMetaProject[];
@@ -11,29 +12,6 @@ type BudgetByCategoryProps = {
   onIncludeMegaProjectsChange?: (includeMegaProjects: boolean) => void;
   className?: string;
 };
-
-function usePrefersReducedMotion(): boolean {
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => {
-      setReducedMotion(mediaQuery.matches);
-    };
-
-    update();
-    mediaQuery.addEventListener('change', update);
-    return () => {
-      mediaQuery.removeEventListener('change', update);
-    };
-  }, []);
-
-  return reducedMotion;
-}
 
 function numberData(element: Element, key: string, fallback = 0): number {
   const value = Number((element as HTMLElement).dataset[key]);
@@ -99,11 +77,11 @@ export default function BudgetByCategory({
       .tickFormat((value) => formatEuroCompact(Number(value)));
 
     axisSelection.transition().duration(transitionMs).ease(easeCubicOut).call(axis);
-    axisSelection.select('.domain').attr('stroke', '#cec8bf');
-    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', '#ddd8ce').attr('y2', 6);
+    axisSelection.select('.domain').attr('stroke', 'var(--color-swatch-gray-3)');
+    axisSelection.selectAll<SVGLineElement, unknown>('.tick line').attr('stroke', 'var(--color-swatch-gray-2)').attr('y2', 6);
     axisSelection
       .selectAll<SVGTextElement, unknown>('.tick text')
-      .attr('fill', '#605b55')
+      .attr('fill', 'var(--color-muted)')
       .attr('font-size', 11)
       .attr('font-family', 'var(--font-sans)');
   }, [xScale, tickValues, transitionMs]);
@@ -191,7 +169,7 @@ export default function BudgetByCategory({
         <div
           role="group"
           aria-label="Budget visibility mode"
-          style={{ display: 'inline-flex', border: '1px solid var(--color-rule)', background: '#fbfaf6' }}
+          style={{ display: 'inline-flex', border: '1px solid var(--color-rule)', background: 'var(--color-surface-soft)' }}
         >
           <button
             type="button"
@@ -200,10 +178,11 @@ export default function BudgetByCategory({
             style={{
               border: 'none',
               borderRight: '1px solid var(--color-rule)',
-              background: includeMega ? '#ece7de' : 'transparent',
-              color: 'var(--color-text)',
-              font: 'inherit',
+              background: includeMega ? 'var(--color-swatch-blue-2)' : 'transparent',
+              color: includeMega ? '#ffffff' : 'var(--color-text)',
+              fontFamily: 'var(--font-sans)',
               fontSize: '0.82rem',
+              letterSpacing: '0.04em',
               padding: '0.42rem 0.62rem',
               cursor: 'pointer'
             }}
@@ -216,10 +195,11 @@ export default function BudgetByCategory({
             onClick={() => setIncludeMega(false)}
             style={{
               border: 'none',
-              background: !includeMega ? '#ece7de' : 'transparent',
-              color: 'var(--color-text)',
-              font: 'inherit',
+              background: !includeMega ? 'var(--color-swatch-blue-2)' : 'transparent',
+              color: !includeMega ? '#ffffff' : 'var(--color-text)',
+              fontFamily: 'var(--font-sans)',
               fontSize: '0.82rem',
+              letterSpacing: '0.04em',
               padding: '0.42rem 0.62rem',
               cursor: 'pointer'
             }}
@@ -244,7 +224,7 @@ export default function BudgetByCategory({
                   x2={xScale(tickValue)}
                   y1={0}
                   y2={innerHeight}
-                  stroke="#ece7de"
+                  stroke="var(--color-swatch-gray-1)"
                   strokeWidth={1}
                 />
               ))}
@@ -259,7 +239,7 @@ export default function BudgetByCategory({
                   const labelInside = width > 126;
                   const labelX = labelInside ? width - 7 : width + 7;
                   const labelAnchor = labelInside ? 'end' : 'start';
-                  const labelColor = labelInside ? '#f8f6f2' : '#3f3a35';
+                  const labelColor = labelInside ? '#ffffff' : 'var(--color-text)';
 
                   return (
                     <g key={row.category} className="budget-row" data-target-y={y} transform={`translate(0, ${y})`}>
@@ -270,7 +250,7 @@ export default function BudgetByCategory({
                         textAnchor="end"
                         fontFamily="var(--font-sans)"
                         fontSize={12}
-                        fill="#2f2b27"
+                        fill="var(--color-text)"
                       >
                         {row.category}
                       </text>
@@ -280,8 +260,8 @@ export default function BudgetByCategory({
                         y={0}
                         width={innerWidth}
                         height={barHeight}
-                        fill="#f4f1ea"
-                        stroke="#e2ddd3"
+                        fill="var(--color-surface-soft)"
+                        stroke="var(--color-rule)"
                         strokeWidth={0.8}
                       />
 
@@ -292,7 +272,7 @@ export default function BudgetByCategory({
                         height={barHeight}
                         rx={2}
                         ry={2}
-                        fill="#4f4a44"
+                        fill="var(--color-swatch-blue-2)"
                         width={width}
                         data-target-width={width}
                       />
@@ -318,7 +298,7 @@ export default function BudgetByCategory({
                         textAnchor="start"
                         fontFamily="var(--font-sans)"
                         fontSize={11}
-                        fill="#5f5952"
+                        fill="var(--color-muted)"
                       >
                         {formatProjectCount(row.projectCount)}
                       </text>
