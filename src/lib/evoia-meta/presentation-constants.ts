@@ -78,6 +78,13 @@ export const FUNDING_GROUP_FILLS: Record<string, string> = {
   private_philanthropy: '#ebd4d4'
 };
 
+/** Darker tint for the big total numbers at the bottom of Slide 2 columns */
+export const FUNDING_GROUP_TOTAL_COLORS: Record<string, string> = {
+  public: '#7882aa',
+  mixed_unclear: '#909090',
+  private_philanthropy: '#aa7880'
+};
+
 export const TRANSITION_MS = 600;
 
 export const FONT_DISPLAY = "'bebas-neue-pro', 'Bebas Neue Pro', 'Bebas Neue', 'Arial Narrow', sans-serif";

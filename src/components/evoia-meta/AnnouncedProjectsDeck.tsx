@@ -2,20 +2,41 @@ import { easeCubicOut, select } from 'd3';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
 import type { EvoiaMetaProject } from '@/lib/evoia-meta/schema';
-import { computeSlideLayout } from '@/lib/evoia-meta/presentation-layout';
+import {
+  computeSlideLayout,
+  computeTotalFontSize,
+  formatBudgetTotal
+} from '@/lib/evoia-meta/presentation-layout';
 import {
   TRANSITION_MS,
   FONT_DISPLAY,
   FONT_BODY,
   COLOR_TEXT,
-  COLOR_CATEGORY_LABEL
+  COLOR_CATEGORY_LABEL,
+  FUNDING_GROUP_ORDER,
+  FUNDING_GROUP_FILLS,
+  FUNDING_GROUP_TOTAL_COLORS
 } from '@/lib/evoia-meta/presentation-constants';
 
 type AnnouncedProjectsDeckProps = {
   projects: EvoiaMetaProject[];
 };
 
-const TOTAL_SLIDES = 2;
+type ColumnOverlay = {
+  key: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  gradientColor: string;
+  totalText: string;
+  totalX: number;
+  totalY: number;
+  totalFontSize: number;
+  totalColor: string;
+};
+
+const TOTAL_SLIDES = 3;
 
 function useViewportSize() {
   const [size, setSize] = useState({ width: 1920, height: 1080 });
@@ -35,9 +56,62 @@ function useViewportSize() {
   return size;
 }
 
+/**
+ * Compute column overlay data (gradient rects + budget totals) for Slide 2.
+ * These use the same column geometry as the layout engine but are computed
+ * independently so they can always exist in the DOM for smooth transitions.
+ */
+function computeColumnOverlays(
+  projects: EvoiaMetaProject[],
+  viewportWidth: number,
+  viewportHeight: number
+): ColumnOverlay[] {
+  const filtered = projects.filter((p) => !p.tag.startsWith('B'));
+
+  // Same geometry as layout engine
+  const marginX = Math.round(viewportWidth * 0.05);
+  const marginTop = Math.round(viewportHeight * 0.035);
+  const marginBottom = Math.round(viewportHeight * 0.03);
+  const titleFontSize = Math.max(20, Math.min(48, Math.round(viewportWidth * 0.022)));
+  const titleAreaHeight = titleFontSize + Math.round(viewportHeight * 0.025);
+  const contentTop = marginTop + titleAreaHeight;
+  const contentHeight = viewportHeight - contentTop - marginBottom;
+  const contentWidth = viewportWidth - marginX * 2;
+  const columnGap = Math.round(contentWidth * 0.025);
+  const numColumns = 3;
+  const totalColumnWidth = contentWidth - columnGap * (numColumns - 1);
+  const columnWidth = totalColumnWidth / numColumns;
+
+  const totalFontSize = computeTotalFontSize(viewportWidth);
+
+  // Sum budgets per funding group
+  const budgets = new Map<string, number>();
+  for (const p of filtered) {
+    budgets.set(p.fundingProvenance, (budgets.get(p.fundingProvenance) ?? 0) + (p.announcedBudget ?? 0));
+  }
+
+  return FUNDING_GROUP_ORDER.map((key, i) => {
+    const colX = marginX + i * (columnWidth + columnGap);
+    return {
+      key,
+      x: colX,
+      y: contentTop,
+      width: columnWidth,
+      height: contentHeight,
+      gradientColor: FUNDING_GROUP_FILLS[key] ?? '#e0e0e0',
+      totalText: formatBudgetTotal(budgets.get(key) ?? 0),
+      totalX: colX + columnWidth / 2,
+      totalY: contentTop + contentHeight - totalFontSize * 0.3,
+      totalFontSize,
+      totalColor: FUNDING_GROUP_TOTAL_COLORS[key] ?? '#909090'
+    };
+  });
+}
+
 export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDeckProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const barsRef = useRef<SVGGElement>(null);
+  const overlaysRef = useRef<SVGGElement>(null);
   const isFirstRenderRef = useRef(true);
   const [slideIndex, setSlideIndex] = useState(0);
   const reducedMotion = usePrefersReducedMotion();
@@ -46,6 +120,11 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
   const layout = useMemo(
     () => computeSlideLayout(projects, viewport.width, viewport.height, slideIndex),
     [projects, viewport.width, viewport.height, slideIndex]
+  );
+
+  const overlays = useMemo(
+    () => computeColumnOverlays(projects, viewport.width, viewport.height),
+    [projects, viewport.width, viewport.height]
   );
 
   const transitionMs = reducedMotion ? 0 : TRANSITION_MS;
@@ -85,11 +164,6 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
   }, [handleKeyDown]);
 
   // --- D3 transitions on layout change ---
-  // useLayoutEffect ensures first-render positions are set before browser paint.
-  // On first render: duration=0 (instant placement, no flash).
-  // On subsequent renders: D3 transitions animate from old to new positions.
-  // React only updates data-target-* attributes; D3 manages the actual
-  // transform, width, height, fill, y, and font-size attributes.
   useLayoutEffect(() => {
     if (!barsRef.current) {
       return;
@@ -151,7 +225,16 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
       .attr('opacity', function () {
         return Number((this as HTMLElement).dataset.targetOpacity) ?? 1;
       });
-  }, [layout, transitionMs]);
+
+    // Animate column overlays (gradient + totals) opacity
+    if (overlaysRef.current) {
+      select(overlaysRef.current)
+        .transition()
+        .duration(duration)
+        .ease(easeCubicOut)
+        .attr('opacity', slideIndex >= 2 ? 1 : 0);
+    }
+  }, [layout, slideIndex, transitionMs]);
 
   return (
     <svg
@@ -163,6 +246,51 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
       role="img"
       aria-label="Evia Meta reconstruction announced projects presentation"
     >
+      {/* Gradient definitions for column overlays */}
+      <defs>
+        {overlays.map((overlay) => (
+          <linearGradient
+            key={overlay.key}
+            id={`col-gradient-${overlay.key}`}
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="1"
+          >
+            <stop offset="0%" stopColor={overlay.gradientColor} stopOpacity={0.03} />
+            <stop offset="100%" stopColor={overlay.gradientColor} stopOpacity={0.2} />
+          </linearGradient>
+        ))}
+      </defs>
+
+      {/* Column overlays — gradient rects + budget totals.
+          Always in DOM; D3 transitions opacity (0 on Slide 1, 1 on Slide 2). */}
+      <g ref={overlaysRef} opacity={0}>
+        {overlays.map((overlay) => (
+          <g key={overlay.key}>
+            <rect
+              x={overlay.x}
+              y={overlay.y}
+              width={overlay.width}
+              height={overlay.height}
+              fill={`url(#col-gradient-${overlay.key})`}
+            />
+            <text
+              x={overlay.totalX}
+              y={overlay.totalY}
+              textAnchor="middle"
+              fontFamily={FONT_DISPLAY}
+              fontSize={overlay.totalFontSize}
+              fill={overlay.totalColor}
+              letterSpacing="0.01em"
+              style={{ pointerEvents: 'none' }}
+            >
+              {overlay.totalText}
+            </text>
+          </g>
+        ))}
+      </g>
+
       {/* Title */}
       <text
         x={layout.titleX}
@@ -211,9 +339,7 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         </text>
       ))}
 
-      {/* Project bars — positions/sizes managed entirely by D3 transitions.
-          React only updates data-target-* attributes; D3 reads them and
-          animates the actual transform, width, height, fill, etc. */}
+      {/* Project bars — positions/sizes managed entirely by D3 transitions. */}
       <g ref={barsRef}>
         {layout.bars.map((bar) => (
           <g

@@ -347,10 +347,35 @@ export function computeSlide1Layout(
   };
 }
 
+/** Format a budget total for display: 372834475 → "€372.8M" */
+export function formatBudgetTotal(amount: number): string {
+  if (amount >= 1_000_000_000) {
+    return `€${(amount / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (amount >= 1_000_000) {
+    return `€${(amount / 1_000_000).toFixed(1)}M`;
+  }
+  if (amount >= 1_000) {
+    return `€${Math.round(amount / 1_000)}K`;
+  }
+  return `€${amount.toLocaleString()}`;
+}
+
+/** Font size for the big budget total numbers at the bottom of Slide 2 columns */
+export function computeTotalFontSize(viewportWidth: number): number {
+  return Math.max(24, Math.min(56, Math.round(viewportWidth * 0.025)));
+}
+
+/**
+ * Compute the funding-origin layout.
+ * @param reserveTotalArea When true, reserves space at the bottom for budget totals
+ *   (Slide 3). When false, bars use the full content height (Slide 2).
+ */
 export function computeSlide2Layout(
   projects: EvoiaMetaProject[],
   viewportWidth: number,
-  viewportHeight: number
+  viewportHeight: number,
+  reserveTotalArea = false
 ): SlideLayout {
   // --- Filter: only non-B projects ---
   const filtered = projects.filter((p) => !p.tag.startsWith('B'));
@@ -372,6 +397,11 @@ export function computeSlide2Layout(
   const totalColumnWidth = contentWidth - columnGap * (numColumns - 1);
   const columnWidth = totalColumnWidth / numColumns;
 
+  // --- Optionally reserve space at the bottom for budget total numbers ---
+  const totalFontSize = computeTotalFontSize(viewportWidth);
+  const totalAreaHeight = reserveTotalArea ? Math.round(totalFontSize * 1.6) : 0;
+  const barFittingHeight = contentHeight - totalAreaHeight;
+
   // --- Group projects by fundingProvenance, sort by tag within each group ---
   const grouped = new Map<string, EvoiaMetaProject[]>();
   for (const project of filtered) {
@@ -390,12 +420,12 @@ export function computeSlide2Layout(
   const categoryLabelWidth = Math.max(20, Math.round(columnWidth * 0.06));
   const barWidth = columnWidth - tagWidth - tagGap - categoryLabelWidth;
 
-  const barGap = Math.max(1, Math.round(contentHeight * 0.003));
+  const barGap = Math.max(1, Math.round(barFittingHeight * 0.003));
 
-  // --- Find label font size and bar height that fit contentHeight ---
-  const labelFontSize = Math.max(16, Math.min(44, Math.round(contentHeight * 0.032)));
+  // --- Find label font size and bar height that fit barFittingHeight ---
+  const labelFontSize = Math.max(16, Math.min(44, Math.round(barFittingHeight * 0.032)));
 
-  // Binary-search for barHeight: tallest column is PUBLIC with 36 bars
+  // Binary-search for barHeight within the reduced fitting area
   let barHeightLow = 6;
   let barHeightHigh = 40;
   let barHeight = 20;
@@ -417,7 +447,7 @@ export function computeSlide2Layout(
       if (colHeight > maxColHeight) maxColHeight = colHeight;
     }
 
-    if (maxColHeight > contentHeight) {
+    if (maxColHeight > barFittingHeight) {
       barHeightHigh = barHeight;
     } else {
       barHeightLow = barHeight;
@@ -447,14 +477,14 @@ export function computeSlide2Layout(
 
     const fill = FUNDING_GROUP_FILLS[fundingKey] ?? '#e4e7ed';
 
-    // Compute group height for centering
+    // Compute group height for centering within bar fitting area
     const count = groupProjects.length;
     const barsHeight = count * barHeight + (count - 1) * barGap;
     const label = FUNDING_GROUP_LABELS[fundingKey] ?? fundingKey.toUpperCase();
     const lblHeight = labelVerticalExtent(label, labelFontSize);
     const groupHeight = Math.max(barsHeight, lblHeight);
 
-    // Center bars vertically within the group if label is taller
+    // Center bars vertically within the bar fitting area
     const barsOffsetY = (groupHeight - barsHeight) / 2;
     let cursor = contentTop + barsOffsetY;
 
@@ -487,7 +517,7 @@ export function computeSlide2Layout(
       cursor += barHeight;
     }
 
-    // Column label: rotated 90° CW, centered on group
+    // Column label: rotated 90° CW, centered on bar group
     const labelX = colX + tagWidth + tagGap + barWidth + categoryLabelWidth / 2;
     const labelY = contentTop + groupHeight / 2;
 
@@ -520,7 +550,10 @@ export function computeSlideLayout(
   slideIndex: number
 ): SlideLayout {
   if (slideIndex === 1) {
-    return computeSlide2Layout(projects, viewportWidth, viewportHeight);
+    return computeSlide2Layout(projects, viewportWidth, viewportHeight, false);
+  }
+  if (slideIndex === 2) {
+    return computeSlide2Layout(projects, viewportWidth, viewportHeight, true);
   }
   return computeSlide1Layout(projects, viewportWidth, viewportHeight);
 }
