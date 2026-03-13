@@ -1,150 +1,34 @@
 [
   {
-    "id": "evia-1974-forestry-policy-baseline",
-    "slug": "forestry-policy-baseline",
-    "title": "National forestry policy baseline enters force",
-    "start": "1974",
-    "datePrecision": "year",
-    "isOngoing": false,
-    "summary": "Baseline forestry governance framework used as a long-duration reference point in later land and fire debates.",
-    "category": "forestry-policy",
-    "actors": [
-      "actor-greek-government"
-    ],
-    "places": [
-      "place-evia"
-    ],
-    "tags": [
-      "policy",
-      "forestry"
-    ],
-    "sourceRefs": [
-      "src-forestry-1974"
-    ],
-    "imageRefs": [
-      "img-forestry-policy-baseline-1974"
-    ],
-    "coverImage": "img-forestry-policy-baseline-1974",
-    "mapViewport": {
-      "center": [
-        23.6,
-        38.5
-      ],
-      "zoom": 7
-    },
-    "confidence": "medium",
-    "verificationStatus": "partially-verified",
-    "relatedEvents": [],
-    "featured": false,
-    "body": "This anchor event is used to connect later wildfire governance decisions to earlier institutional structures.",
-    "startTs": 126230400000,
-    "endTs": null,
-    "durationDays": null,
-    "hasGeometry": false,
-    "actorCount": 1,
-    "placeCount": 1,
-    "year": 1974,
-    "decade": 1970,
-    "displayDate": "1974",
-    "sortKey": "126230400000-evia-1974-forestry-policy-baseline",
-    "actorLabels": [
-      {
-        "id": "actor-greek-government",
-        "name": "Hellenic Government",
-        "slug": "greek-government"
-      }
-    ],
-    "placeLabels": [
-      {
-        "id": "place-evia",
-        "name": "Evia",
-        "slug": "evia"
-      }
-    ]
-  },
-  {
-    "id": "evia-2021-wildfire-front-duration",
-    "slug": "wildfire-front-duration",
-    "title": "Northern Evia wildfire active front period",
-    "start": "2021-08-01",
-    "end": "2021-08-13",
+    "id": "evia-2021-event",
+    "slug": "event",
+    "title": "Event",
+    "summary": "License is granted by the Regulatory Energy Authority (RAE)for electricity generation via wind farm at Telethrio Mountain in Northern",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-06-15",
+    "end": null,
     "datePrecision": "day",
     "isOngoing": false,
-    "summary": "Main active wildfire period affecting multiple settlements in Northern Evia.",
-    "category": "wildfire",
+    "displayDate": "2021-06-15",
+    "startTs": 1623715200000,
+    "endTs": null,
     "actors": [
-      "actor-hellenic-fire-service"
+      "actor-regulatory-energy-authority-rae"
     ],
     "places": [
       "place-north-evia"
     ],
-    "tags": [
-      "wildfire",
-      "suppression"
-    ],
-    "sourceRefs": [
-      "src-fire-ops-2021-08"
-    ],
-    "imageRefs": [
-      "img-north-evia-fire-front-2021"
-    ],
-    "coverImage": "img-north-evia-fire-front-2021",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [
-        [
-          [
-            23.12,
-            38.62
-          ],
-          [
-            23.92,
-            38.62
-          ],
-          [
-            23.92,
-            39.02
-          ],
-          [
-            23.12,
-            39.02
-          ],
-          [
-            23.12,
-            38.62
-          ]
-        ]
-      ]
-    },
-    "mapViewport": {
-      "center": [
-        23.52,
-        38.82
-      ],
-      "zoom": 8.3
-    },
-    "confidence": "high",
-    "verificationStatus": "verified",
-    "relatedEvents": [
-      "evia-2021-direct-assignment-benos"
-    ],
-    "featured": true,
-    "body": "Duration event used to validate point-versus-duration rendering and map polygon support.",
-    "startTs": 1627776000000,
-    "endTs": 1628899199000,
-    "durationDays": 13,
-    "hasGeometry": true,
-    "actorCount": 1,
-    "placeCount": 1,
-    "year": 2021,
-    "decade": 2020,
-    "displayDate": "2021-08-01 to 2021-08-13",
-    "sortKey": "1627776000000-evia-2021-wildfire-front-duration",
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
     "actorLabels": [
       {
-        "id": "actor-hellenic-fire-service",
-        "name": "Hellenic Fire Service",
-        "slug": "hellenic-fire-service"
+        "id": "actor-regulatory-energy-authority-rae",
+        "name": "Regulatory Energy Authority (RAE)",
+        "slug": "regulatory-energy-authority-rae"
       }
     ],
     "placeLabels": [
@@ -156,151 +40,756 @@
     ]
   },
   {
-    "id": "evia-2021-direct-assignment-benos",
-    "slug": "direct-assignment-benos",
-    "title": "Direct assignment of North Evia regeneration program to S. Benos",
-    "start": "2021-08-12",
+    "id": "evia-2021-attica",
+    "slug": "attica",
+    "title": "ATTICA",
+    "summary": "ATTICA",
+    "body": "",
+    "category": "wildfire",
+    "start": "2021-08-03",
+    "end": "2021-08-07",
     "datePrecision": "day",
     "isOngoing": false,
-    "summary": "The government assigned North Evia regeneration coordination to Stavros Benos, shaping institutional reconstruction governance.",
-    "category": "reconstruction-governance",
+    "displayDate": "2021-08-03 to 2021-08-07",
+    "startTs": 1627948800000,
+    "endTs": 1628380799000,
     "actors": [
-      "actor-greek-government",
-      "actor-diazoma"
+      "actor-fire-brigade"
     ],
     "places": [
-      "place-athens",
-      "place-north-evia"
+      "place-attica"
     ],
-    "tags": [
-      "governance",
-      "reconstruction"
-    ],
-    "sourceRefs": [
-      "src-gov-announcement-2021-08-12"
-    ],
-    "imageRefs": [
-      "img-regeneration-governance-2021"
-    ],
-    "coverImage": "img-regeneration-governance-2021",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        23.7275,
-        37.9838
-      ]
-    },
-    "mapViewport": {
-      "center": [
-        23.7275,
-        37.9838
-      ],
-      "zoom": 7.5
-    },
-    "confidence": "high",
-    "verificationStatus": "verified",
-    "relatedEvents": [
-      "evia-2021-wildfire-front-duration"
-    ],
-    "featured": true,
-    "body": "Point event used for selection and cross-reference tests in later interaction phases.",
-    "startTs": 1628726400000,
-    "endTs": null,
-    "durationDays": null,
-    "hasGeometry": true,
-    "actorCount": 2,
-    "placeCount": 2,
-    "year": 2021,
-    "decade": 2020,
-    "displayDate": "2021-08-12",
-    "sortKey": "1628726400000-evia-2021-direct-assignment-benos",
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
     "actorLabels": [
       {
-        "id": "actor-greek-government",
-        "name": "Hellenic Government",
-        "slug": "greek-government"
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-north-evia",
+    "slug": "north-evia",
+    "title": "NORTH EVIA",
+    "summary": "NORTH EVIA",
+    "body": "",
+    "category": "wildfire",
+    "start": "2021-08-03",
+    "end": "2021-08-13",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-03 to 2021-08-13",
+    "startTs": 1627948800000,
+    "endTs": 1628899199000,
+    "actors": [
+      "actor-fire-brigade"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-attica-2",
+    "slug": "attica",
+    "title": "ATTICA",
+    "summary": "ATTICA",
+    "body": "",
+    "category": "wildfire",
+    "start": "2021-08-04",
+    "end": "2021-08-11",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-04 to 2021-08-11",
+    "startTs": 1628035200000,
+    "endTs": 1628726399000,
+    "actors": [
+      "actor-fire-brigade"
+    ],
+    "places": [
+      "place-peloponese"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-peloponese",
+        "name": "Peloponnese",
+        "slug": "peloponese"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-attica-1",
+    "slug": "attica",
+    "title": "ATTICA",
+    "summary": "ATTICA",
+    "body": "",
+    "category": "wildfire",
+    "start": "2021-08-05",
+    "end": "2021-08-07",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-05 to 2021-08-07",
+    "startTs": 1628121600000,
+    "endTs": 1628380799000,
+    "actors": [
+      "actor-fire-brigade"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-press-conference",
+    "slug": "press-conference",
+    "title": "Press conference",
+    "summary": "Direct assignment of the regeneration programme for N.Evia to S.Benos",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-08-10",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-10",
+    "startTs": 1628553600000,
+    "endTs": null,
+    "actors": [
+      "actor-prime-minister",
+      "actor-greek-central-government",
+      "actor-s-benos"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-prime-minister",
+        "name": "Prime Minister",
+        "slug": "prime-minister"
+      },
+      {
+        "id": "actor-greek-central-government",
+        "name": "Greek central government",
+        "slug": "greek-central-government"
+      },
+      {
+        "id": "actor-s-benos",
+        "name": "S. Benos",
+        "slug": "s-benos"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-donation-grant-announcement",
+    "slug": "donation-grant-announcement",
+    "title": "Donation grant announcement",
+    "summary": "Stavros Niarchos foundation announced 15 million donation grant for the immediate relief of those affected by this year’s fires",
+    "body": "",
+    "category": "private-actor",
+    "start": "2021-08-12",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-12",
+    "startTs": 1628726400000,
+    "endTs": null,
+    "actors": [
+      "actor-greek-central-government",
+      "actor-stravros-niarchos-foundation"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-greek-central-government",
+        "name": "Greek central government",
+        "slug": "greek-central-government"
+      },
+      {
+        "id": "actor-stravros-niarchos-foundation",
+        "name": "Stravros Niarchos Foundation",
+        "slug": "stravros-niarchos-foundation"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-fek-143a",
+    "slug": "fek-143a",
+    "title": "FEK 143A",
+    "summary": "_Trasfer of Forestry Services from the Decentralised Administrations to the Ministry of Environment & Energy\n_Introduction of Online Platform arogi.gov.gr for the provision of state relief funds from wildfires",
+    "body": "",
+    "category": "legislation",
+    "start": "2021-08-13",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-13",
+    "startTs": 1628812800000,
+    "endTs": null,
+    "actors": [
+      "actor-ministry-of-environment-energy",
+      "actor-ministry-of-civil-protection",
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-ministry-of-environment-energy",
+        "name": "Ministry of Environment & Energy",
+        "slug": "ministry-of-environment-energy"
+      },
+      {
+        "id": "actor-ministry-of-civil-protection",
+        "name": "Ministry of Civil Protection",
+        "slug": "ministry-of-civil-protection"
+      },
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-fire-between-suppression-of-the-main-fronts-and-full-suppres",
+    "slug": "fire-between-suppression-of-the-main-fronts-and-full-suppres",
+    "title": "Fire (between suppression of the main fronts and full suppression)",
+    "summary": "Fire (between suppression of the main fronts and full suppression)",
+    "body": "",
+    "category": "suppression",
+    "start": "2021-08-13",
+    "end": "2021-09-18",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-13 to 2021-09-18",
+    "startTs": 1628812800000,
+    "endTs": 1632009599000,
+    "actors": [
+      "actor-fire-brigade"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-attica-3",
+    "slug": "attica",
+    "title": "ATTICA",
+    "summary": "ATTICA",
+    "body": "",
+    "category": "wildfire",
+    "start": "2021-08-16",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-16",
+    "startTs": 1629072000000,
+    "endTs": null,
+    "actors": [],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-meeting-at-megaro-maximou",
+    "slug": "meeting-at-megaro-maximou",
+    "title": "Meeting at Megaro Maximou",
+    "summary": "Meeting at Maximou\nPresentation of immediate and long-term mesures",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-08-18",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-18",
+    "startTs": 1629244800000,
+    "endTs": null,
+    "actors": [
+      "actor-prime-minister",
+      "actor-greek-central-government"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-prime-minister",
+        "name": "Prime Minister",
+        "slug": "prime-minister"
+      },
+      {
+        "id": "actor-greek-central-government",
+        "name": "Greek central government",
+        "slug": "greek-central-government"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-announcement-meetings-events-demonstrations-by-civil-society",
+    "slug": "announcement-meetings-events-demonstrations-by-civil-society",
+    "title": "Announcement / Meetings / Events / Demonstrations by civil society",
+    "summary": "Demonstration organised by the Union of Resin collectors in N. Evia, Rural association of Mantoudi, Initiative of citizens affected by the fire",
+    "body": "",
+    "category": "civil-society-action",
+    "start": "2021-08-21",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-08-21",
+    "startTs": 1629504000000,
+    "endTs": null,
+    "actors": [
+      "actor-rural-association-of-mantoudi",
+      "actor-initiative-of-citizens-affected-by-the-fire",
+      "actor-union-of-resin-collectors-in-n-evia"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-rural-association-of-mantoudi",
+        "name": "Rural association of Mantoudi",
+        "slug": "rural-association-of-mantoudi"
+      },
+      {
+        "id": "actor-initiative-of-citizens-affected-by-the-fire",
+        "name": "Initiative of citizens affected by the fire",
+        "slug": "initiative-of-citizens-affected-by-the-fire"
+      },
+      {
+        "id": "actor-union-of-resin-collectors-in-n-evia",
+        "name": "Union of Resin collectors in N. Evia",
+        "slug": "union-of-resin-collectors-in-n-evia"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-meeting-of-stavros-benos-with-mayors-of-n-evia-and-regional",
+    "slug": "meeting-of-stavros-benos-with-mayors-of-n-evia-and-regional",
+    "title": "Meeting of Stavros Benos with mayors of N. Evia and regional governor",
+    "summary": "Meeting of Stavros Benos with mayors of N. Evia and regional governor",
+    "body": "",
+    "category": "municipal-action",
+    "start": "2021-09-07",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-09-07",
+    "startTs": 1630972800000,
+    "endTs": null,
+    "actors": [
+      "actor-s-benos",
+      "actor-local-municipality-of-istiaia",
+      "actor-aidipsos",
+      "actor-local-municipality-of-limni",
+      "actor-mantoudi",
+      "actor-agia-anna",
+      "actor-diazoma",
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-s-benos",
+        "name": "S. Benos",
+        "slug": "s-benos"
+      },
+      {
+        "id": "actor-local-municipality-of-istiaia",
+        "name": "Local Municipality of Istiaia",
+        "slug": "local-municipality-of-istiaia"
+      },
+      {
+        "id": "actor-aidipsos",
+        "name": "Aidipsos",
+        "slug": "aidipsos"
+      },
+      {
+        "id": "actor-local-municipality-of-limni",
+        "name": "Local Municipality of Limni",
+        "slug": "local-municipality-of-limni"
+      },
+      {
+        "id": "actor-mantoudi",
+        "name": "Mantoudi",
+        "slug": "mantoudi"
+      },
+      {
+        "id": "actor-agia-anna",
+        "name": "Agia Anna",
+        "slug": "agia-anna"
       },
       {
         "id": "actor-diazoma",
-        "name": "DIAZOMA",
+        "name": "Diazoma",
+        "slug": "diazoma"
+      },
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-full-suppression-of-the-fire-fronts-announced-by-the-fire-br",
+    "slug": "full-suppression-of-the-fire-fronts-announced-by-the-fire-br",
+    "title": "Full suppression of the fire fronts announced by the fire brigade",
+    "summary": "Full suppression of the fire fronts announced by the fire brigade",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-09-18",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-09-18",
+    "startTs": 1631923200000,
+    "endTs": null,
+    "actors": [
+      "actor-fire-brigade"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-fire-brigade",
+        "name": "Fire Brigade",
+        "slug": "fire-brigade"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-consecutive-days-of-severe-rainfall",
+    "slug": "consecutive-days-of-severe-rainfall",
+    "title": "Consecutive days of severe rainfall",
+    "summary": "floodings..",
+    "body": "",
+    "category": "flood",
+    "start": "2021-10-09",
+    "end": "2021-10-12",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-10-09 to 2021-10-12",
+    "startTs": 1633737600000,
+    "endTs": 1634083199000,
+    "actors": [],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-1st-bulletin-knoukla",
+    "slug": "1st-bulletin-knoukla",
+    "title": "1st bulletin 'KNOUKLA'",
+    "summary": "1st Information bulletin by Initiative  in N. Evia",
+    "body": "",
+    "category": "civil-society-action",
+    "start": "2021-10-14",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-10-14",
+    "startTs": 1634169600000,
+    "endTs": null,
+    "actors": [
+      "actor-initiative-of-citizens-affected-by-the-fire"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-initiative-of-citizens-affected-by-the-fire",
+        "name": "Initiative of citizens affected by the fire",
+        "slug": "initiative-of-citizens-affected-by-the-fire"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-contracts-signed-between-private-actors",
+    "slug": "contracts-signed-between-private-actors",
+    "title": "Contracts signed between private actors",
+    "summary": "Contracts signed between private actors",
+    "body": "",
+    "category": "contract",
+    "start": "2021-10-20",
+    "end": "2021-12-02",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-10-20 to 2021-12-02",
+    "startTs": 1634688000000,
+    "endTs": 1638489599000,
+    "actors": [
+      "actor-diazoma"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-diazoma",
+        "name": "Diazoma",
         "slug": "diazoma"
       }
     ],
     "placeLabels": [
       {
-        "id": "place-athens",
-        "name": "Athens",
-        "slug": "athens"
-      },
-      {
-        "id": "place-north-evia",
-        "name": "North Evia",
-        "slug": "north-evia"
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
       }
     ]
   },
   {
-    "id": "evia-2022-recovery-contract-bundle",
-    "slug": "recovery-contract-bundle",
-    "title": "Recovery works procurement bundle announced",
-    "start": "2022-06",
-    "datePrecision": "month",
+    "id": "evia-2021-demonstration-by-the-initiative-of-n-evia-against-the-imposi",
+    "slug": "demonstration-by-the-initiative-of-n-evia-against-the-imposi",
+    "title": "Demonstration by the Initiative of N. Evia against the imposition of the Diazoma committee",
+    "summary": "Demonstration by the Initiative  in N. Evia against the imposition of the S.Benos committee. ''While the forest is burning, instead of fire trucks, they sent us Benos''",
+    "body": "",
+    "category": "civil-society-action",
+    "start": "2021-11-06",
+    "end": null,
+    "datePrecision": "day",
     "isOngoing": false,
-    "summary": "Procurement bundle for post-fire works announced as part of medium-term reconstruction implementation.",
-    "category": "contract",
+    "displayDate": "2021-11-06",
+    "startTs": 1636156800000,
+    "endTs": null,
     "actors": [
-      "actor-greek-government"
+      "actor-initiative-of-citizens-affected-by-the-fire"
     ],
     "places": [
-      "place-north-evia"
+      "place-attica"
     ],
-    "tags": [
-      "contract",
-      "reconstruction"
-    ],
-    "sourceRefs": [
-      "src-recovery-contract-2022-06"
-    ],
-    "imageRefs": [
-      "img-recovery-contract-bundle-2022"
-    ],
-    "coverImage": "img-recovery-contract-bundle-2022",
-    "mapViewport": {
-      "center": [
-        23.4,
-        38.85
-      ],
-      "zoom": 8
-    },
-    "confidence": "medium",
-    "verificationStatus": "partially-verified",
-    "relatedEvents": [
-      "evia-2021-direct-assignment-benos"
-    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
     "featured": false,
-    "body": "Month-precision event used to validate mixed date precision handling.",
-    "startTs": 1654041600000,
-    "endTs": null,
-    "durationDays": null,
-    "hasGeometry": false,
-    "actorCount": 1,
-    "placeCount": 1,
-    "year": 2022,
-    "decade": 2020,
-    "displayDate": "2022-06",
-    "sortKey": "1654041600000-evia-2022-recovery-contract-bundle",
     "actorLabels": [
       {
-        "id": "actor-greek-government",
-        "name": "Hellenic Government",
-        "slug": "greek-government"
+        "id": "actor-initiative-of-citizens-affected-by-the-fire",
+        "name": "Initiative of citizens affected by the fire",
+        "slug": "initiative-of-citizens-affected-by-the-fire"
       }
     ],
     "placeLabels": [
       {
-        "id": "place-north-evia",
-        "name": "North Evia",
-        "slug": "north-evia"
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
       }
     ]
   }

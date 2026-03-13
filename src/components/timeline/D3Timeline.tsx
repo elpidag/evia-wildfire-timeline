@@ -1,5 +1,4 @@
 import {
-  extent,
   select,
   zoom,
   zoomIdentity,
@@ -61,18 +60,12 @@ const centerGap = 24;
 const pointCollisionMs = 86_400_000;
 const eventMinWidth = 6;
 
-function getDomain(events: TimelineEvent[]): [Date, Date] {
-  const startExtent = extent(events, (event) => event.startTs);
-  const endExtent = extent(events, (event) => event.endTs ?? event.startTs);
-
-  const minTs = Math.min(startExtent[0] ?? Date.UTC(1970, 0, 1), Date.UTC(1970, 0, 1));
-  const maxTs = Math.max(endExtent[1] ?? Date.now(), Date.now());
-
-  const span = Math.max(86_400_000, maxTs - minTs);
-  const pad = Math.max(86_400_000 * 20, span * 0.04);
-
-  return [new Date(minTs - pad), new Date(maxTs + pad)];
-}
+// Fixed domain: 1 Jan 2021 → 18 Mar 2026.
+// Changing this is the single source of truth for the visible time range.
+const FIXED_DOMAIN: [Date, Date] = [
+  new Date(Date.UTC(2021, 0, 1)),
+  new Date(Date.UTC(2026, 2, 18))
+];
 
 function getEventEndTs(event: TimelineEvent): number {
   if (event.endTs) {
@@ -294,7 +287,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const svgHeight = margin.top + timelineHeight + margin.bottom;
   const innerWidth = Math.max(minimumInnerWidth, width - margin.left - margin.right);
 
-  const baseDomain = useMemo(() => getDomain(events), [events]);
+  const baseDomain = FIXED_DOMAIN;
 
   const baseScale = useMemo(() => {
     return createBaseTimeScale(baseDomain, [0, innerWidth]);
@@ -345,7 +338,9 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
         [innerWidth, timelineHeight]
       ])
       .on('zoom', (event: D3ZoomEvent<SVGSVGElement, unknown>) => {
-        setTransform(event.transform);
+        // Discard the y component — timeline is horizontal-only.
+        const { x, k } = event.transform;
+        setTransform(zoomIdentity.translate(x, 0).scale(k));
       });
 
     zoomBehaviorRef.current = behavior;

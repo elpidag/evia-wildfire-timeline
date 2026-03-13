@@ -76,8 +76,18 @@ function getTickMode(spanMs: number): TickMode {
     };
   }
 
+  // ~15–55 days visible: label only the 1st of each month, minor grid on weeks.
+  if (spanYears > 0.04) {
+    return {
+      major: timeMonth,
+      minor: everyOrFallback(timeWeek, 1),
+      format: formatMonthYear
+    };
+  }
+
+  // < ~15 days visible: weekly labels, daily minor grid.
   return {
-    major: everyOrFallback(timeDay, 1),
+    major: everyOrFallback(timeWeek, 1),
     minor: everyOrFallback(timeDay, 1),
     format: formatDayMonth
   };
