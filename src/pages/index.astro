@@ -1,21 +1,231 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+// Landing page — Talking Around Fire
+// No layout wrapper: full-screen takeover, no scroll.
 ---
 
-<BaseLayout title="Evia Wildfire Timeline">
-  <section class="page-intro">
-    <p class="eyebrow">Evia Wildfire Timeline</p>
-    <h1>Investigative research timeline</h1>
-    <p>
-      Publication-grade timeline workspace for longitudinal wildfire research, with synchronized map context and
-      structured editorial content.
-    </p>
-    <nav class="nav-links">
-      <a href="/reconstruction">Reconstruction module</a>
-      <a href="/timeline">Timeline workspace</a>
-      <a href="/about">About</a>
-      <a href="/sources">Sources</a>
-      <a href="/keystatic">Keystatic</a>
-    </nav>
-  </section>
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Talking Around Fire — The case of Evia Island, Greece." />
+    <link rel="stylesheet" href="https://use.typekit.net/dzu6izh.css" />
+    <link rel="preload" as="image" href="/images/Evia2021.webp" fetchpriority="high" />
+    <title>Talking Around Fire</title>
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* ── Full-screen canvas ── */
+      .landing {
+        position: fixed;
+        inset: 0;
+        background: #c44644;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Prevent text selection on rapid clicks */
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* ── Centered content column ── */
+      .landing-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        max-width: 92vw;
+      }
+
+      /* ── Title ── */
+      .landing-title {
+        font-family: 'bebas-neue-pro', 'Bebas Neue Pro', 'Bebas Neue', 'Arial Narrow', sans-serif;
+        font-size: clamp(1.9rem, 4.3vw, 6.5rem);
+        font-weight: 700;
+        line-height: 0.94;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: opacity 0.15s ease, font-size 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .landing-inner.is-revealed .landing-title {
+        font-size: clamp(1.2rem, 2.6vw, 3.8rem);
+      }
+
+      .landing-title:hover {
+        opacity: 0.88;
+      }
+
+      /* ── Reveal wrapper: grid trick for height: 0 → auto ── */
+      .landing-reveal-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+      }
+
+      .landing-reveal-wrap.is-open {
+        grid-template-rows: 1fr;
+      }
+
+      /* ── Image reveal (sits above the title) ── */
+      .landing-reveal-image-content {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Space between image bottom and title */
+        padding-bottom: clamp(1rem, 2.5vh, 2rem);
+        opacity: 0;
+        transform: translateY(-12px);
+        transition: opacity 0.55s ease 0.18s, transform 0.55s ease 0.18s;
+        /* Pre-promote to compositor layer so first paint is instant */
+        will-change: opacity, transform;
+      }
+
+      .landing-reveal-wrap.is-open .landing-reveal-image-content {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Subtitle reveal (sits below the title) ── */
+      .landing-reveal-subtitle-content {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Space between title top and subtitle */
+        padding-top: clamp(0.5rem, 1.2vh, 1rem);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.5s ease 0.28s, transform 0.5s ease 0.28s;
+      }
+
+      .landing-reveal-wrap.is-open .landing-reveal-subtitle-content {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── Subtitle text ── */
+      .landing-subtitle {
+        font-family: 'bebas-neue-pro', 'Bebas Neue Pro', 'Bebas Neue', 'Arial Narrow', sans-serif;
+        font-size: clamp(0.85rem, 1.7vw, 1.4rem);
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin: 0;
+        transition: font-size 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .landing-inner.is-revealed .landing-subtitle {
+        font-size: clamp(0.6rem, 1.1vw, 0.95rem);
+      }
+
+      /* ── Satellite image ── */
+      .landing-image-wrap {
+        width: clamp(240px, min(68vw, 62vh), 780px);
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        /* Vignette fades the white edges of the satellite composite into the red bg */
+        mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, black 58%, transparent 100%);
+        -webkit-mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, black 58%, transparent 100%);
+      }
+
+      .landing-image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: saturate(0.85) brightness(0.96);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="landing">
+      <div class="landing-inner">
+
+        <!-- Image reveals ABOVE the title → title is pushed downward -->
+        <div class="landing-reveal-wrap" id="landing-image-reveal" aria-hidden="true">
+          <div class="landing-reveal-image-content">
+            <div class="landing-image-wrap">
+              <img
+                src="/images/Evia2021.webp"
+                alt="False-colour satellite composite of Evia Island and surrounding region"
+                draggable="false"
+              />
+            </div>
+          </div>
+        </div>
+
+        <h1 class="landing-title" id="landing-title" role="button" tabindex="0" aria-label="Talking Around Fire — click to continue">
+          Talking around fire
+        </h1>
+
+        <!-- Subtitle reveals BELOW the title -->
+        <div class="landing-reveal-wrap" id="landing-subtitle-reveal" aria-hidden="true">
+          <div class="landing-reveal-subtitle-content">
+            <p class="landing-subtitle">The case of Evia Island, Greece</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        // Pre-decode the satellite image into GPU memory as soon as the script
+        // runs (end of <body>), so it is fully ready before any click happens.
+        // This is the key fix: rel="preload" fetches bytes but doesn't decode;
+        // img.decode() forces pixel decoding now, not on first paint.
+        const satelliteImg = document.querySelector('.landing-image-wrap img');
+        if (satelliteImg instanceof HTMLImageElement) {
+          satelliteImg.decode().catch(() => {/* ignore — image still loads normally */});
+        }
+
+        let clicks = 0;
+        const title = document.getElementById('landing-title');
+        const inner = title?.closest('.landing-inner');
+        const imageReveal = document.getElementById('landing-image-reveal');
+        const subtitleReveal = document.getElementById('landing-subtitle-reveal');
+
+        function advance() {
+          clicks += 1;
+
+          if (clicks === 1) {
+            imageReveal?.classList.add('is-open');
+            imageReveal?.removeAttribute('aria-hidden');
+            subtitleReveal?.classList.add('is-open');
+            subtitleReveal?.removeAttribute('aria-hidden');
+            inner?.classList.add('is-revealed');
+          } else {
+            window.location.href = '/archive';
+          }
+        }
+
+        title?.addEventListener('click', advance);
+
+        title?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            advance();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

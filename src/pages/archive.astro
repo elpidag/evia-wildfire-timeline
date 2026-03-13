@@ -1,0 +1,114 @@
+---
+// Archive — Talking Around Fire
+// Full-screen 5×4 grid. Dark background, light-gray cells, colored border accents.
+
+// Distribute the three tab colors + no-border across 20 cells.
+// null = no visible border (dark gap shows through).
+const BORDERS: (string | null)[] = [
+  null,       '#d86958', null,       '#23349d', null,
+  '#23349d',  '#d86958', null,       '#7376c6', '#d86958',
+  '#d86958',  null,      '#d86958',  '#23349d', null,
+  '#7376c6',  null,      '#23349d',  null,      '#7376c6',
+];
+
+const cells = BORDERS.map((border, i) => ({ border, n: i + 1 }));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://use.typekit.net/dzu6izh.css" />
+    <title>Archive — Talking Around Fire</title>
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #111111;
+      }
+
+      /* ── Full-screen shell ── */
+      .archive-page {
+        height: 100vh;
+        background: #111111;
+        display: flex;
+        flex-direction: column;
+        padding: 1.6rem 2.8rem 2rem;
+        gap: 1.2rem;
+      }
+
+      /* ── Navigation tabs — right-aligned ── */
+      .archive-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        flex-shrink: 0;
+      }
+
+      .archive-tab {
+        display: block;
+        padding: 0.38rem 0.85rem;
+        font-family: 'bebas-neue-pro', 'Bebas Neue Pro', 'Arial Narrow', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        color: #ffffff;
+        text-transform: uppercase;
+        transition: opacity 0.15s ease;
+      }
+
+      .archive-tab:hover { opacity: 0.72; }
+      .tab-policy   { background: #23349d; }
+      .tab-forestry { background: #d86958; }
+      .tab-hybrid   { background: #7376c6; }
+
+      /* ── Grid ── */
+      .archive-grid {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 3px;
+      }
+
+      /* ── Cell ── */
+      .archive-cell {
+        background: #e9e9e9;
+        /* border color injected inline; transparent = invisible against bg */
+        border: 2px solid var(--cb, transparent);
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="archive-page">
+
+      <nav class="archive-nav" aria-label="Section navigation">
+        <a href="/reconstruction" class="archive-tab tab-policy">_Planning &amp; Policy</a>
+        <a href="/home"           class="archive-tab tab-forestry">_Forestry Service</a>
+        <a href="#"               class="archive-tab tab-hybrid">_Hybrid Schemes</a>
+      </nav>
+
+      <div class="archive-grid">
+        {cells.map(cell => (
+          <div
+            class="archive-cell"
+            style={cell.border ? `--cb:${cell.border}` : ''}
+          ></div>
+        ))}
+      </div>
+
+    </div>
+
+  </body>
+</html>
