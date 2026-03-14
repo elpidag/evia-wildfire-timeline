@@ -233,37 +233,11 @@ function buildFireSeasons(domain: [Date, Date]): FireSeason[] {
 function buildLabelVisibility(
   events: PositionedEvent[],
   selectedEventId: string | null,
-  spanDays: number,
-  xForEvent: (event: PositionedEvent) => number
 ): Map<string, boolean> {
   const labels = new Map<string, boolean>();
-
-  if (spanDays > 365.25 * 40) {
-    for (const event of events) {
-      labels.set(event.id, event.id === selectedEventId);
-    }
-    return labels;
+  for (const event of events) {
+    labels.set(event.id, event.id === selectedEventId);
   }
-
-  const minGapPx = spanDays > 365.25 * 12 ? 120 : spanDays > 365.25 * 5 ? 70 : spanDays > 365.25 * 2 ? 42 : 18;
-  const laneLastX = new Map<string, number>();
-
-  const sorted = [...events].sort((a, b) => xForEvent(a) - xForEvent(b));
-
-  for (const event of sorted) {
-    const laneKey = `${event.band}:${event.laneIndex}`;
-    const x = xForEvent(event);
-    const lastX = laneLastX.get(laneKey);
-
-    const forceVisible = event.id === selectedEventId || (event.featured && spanDays <= 365.25 * 20);
-    const visible = forceVisible || lastX === undefined || x - lastX >= minGapPx;
-
-    labels.set(event.id, visible);
-    if (visible) {
-      laneLastX.set(laneKey, x);
-    }
-  }
-
   return labels;
 }
 
@@ -337,7 +311,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
 
         return true;
       })
-      .scaleExtent([1, 720])
+      .scaleExtent([1, 21])
       .translateExtent([
         [0, 0],
         [innerWidth, timelineHeight]
@@ -422,11 +396,9 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
     }
   };
 
-  const xForEvent = (event: PositionedEvent): number => visibleScale(new Date(event.startTs));
-
   const labelVisibility = useMemo(() => {
-    return buildLabelVisibility(layout.events, selectedEventId, visibleSpanDays, xForEvent);
-  }, [layout.events, selectedEventId, visibleSpanDays, visibleScale]);
+    return buildLabelVisibility(layout.events, selectedEventId);
+  }, [layout.events, selectedEventId]);
 
   return (
     <section className="timeline-card" aria-label="Timeline engine">
@@ -457,24 +429,59 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
 
             {tickSpec.minorTicks.map((tick) => {
               const x = visibleScale(tick);
+              const isJan1 = tick.getMonth() === 0 && tick.getDate() === 1;
+              const is15th = tick.getDate() === 15;
               return (
                 <line
                   key={`minor-${tick.toISOString()}`}
                   x1={x}
                   x2={x}
-                  y1={0}
+                  y1={is15th ? 8 : 0}
                   y2={timelineHeight}
-                  className="timeline-tick-minor"
+                  className={isJan1 ? 'timeline-tick-year' : 'timeline-tick-minor'}
+                />
+              );
+            })}
+
+            {/* Fixed year label in upper-left when zoomed in and no Jan tick visible */}
+            {visibleSpanDays < 365 && !tickSpec.majorTicks.some((t) => t.getMonth() === 0) && (
+              <text
+                x={4}
+                y={-8}
+                className="timeline-tick-label timeline-tick-label-year"
+              >
+                {visibleDomain[0].getFullYear()}
+              </text>
+            )}
+
+            {tickSpec.dailyTicks.map((tick) => {
+              const x = visibleScale(tick);
+              return (
+                <line
+                  key={`daily-${tick.toISOString()}`}
+                  x1={x}
+                  x2={x}
+                  y1={8}
+                  y2={timelineHeight}
+                  className="timeline-tick-daily"
                 />
               );
             })}
 
             {tickSpec.majorTicks.map((tick) => {
               const x = visibleScale(tick);
+              const isJanuary = tick.getMonth() === 0;
               return (
                 <g key={`major-${tick.toISOString()}`}>
-                  <line x1={x} x2={x} y1={0} y2={timelineHeight} className="timeline-tick-major" />
-                  <text x={x + 2} y={-8} className="timeline-tick-label">
+                  <line
+                    x1={x} x2={x} y1={0} y2={timelineHeight}
+                    className={isJanuary ? 'timeline-tick-major' : 'timeline-tick-secondary'}
+                  />
+                  <text
+                    x={x + 2}
+                    y={isJanuary ? -8 : -2}
+                    className={isJanuary ? 'timeline-tick-label timeline-tick-label-year' : 'timeline-tick-label timeline-tick-label-month'}
+                  >
                     {tickSpec.formatMajor(tick)}
                   </text>
                 </g>

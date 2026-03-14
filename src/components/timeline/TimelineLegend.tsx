@@ -33,10 +33,6 @@ export default function TimelineLegend({ events: _events }: TimelineLegendProps)
           <WideIcon src="_flood.svg" />
           <span>Flood and extreme rainfall</span>
         </span>
-        <span className="legend-entry">
-          <WideIcon src="_forestryserviceworks.svg" />
-          <span>Forestry Service works</span>
-        </span>
       </div>
 
       {/* Row 2 */}
@@ -52,6 +48,10 @@ export default function TimelineLegend({ events: _events }: TimelineLegendProps)
         <span className="legend-entry">
           <Icon src="_generalelections.svg" />
           <span>Elections</span>
+        </span>
+        <span className="legend-entry">
+          <WideIcon src="_forestryserviceworks.svg" />
+          <span>Forestry Service works</span>
         </span>
       </div>
 

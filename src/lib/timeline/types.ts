@@ -93,6 +93,7 @@ export type TimelineEvent = {
 export type TimelineTickSpec = {
   majorTicks: Date[];
   minorTicks: Date[];
+  dailyTicks: Date[];
   formatMajor: (date: Date) => string;
 };
 
