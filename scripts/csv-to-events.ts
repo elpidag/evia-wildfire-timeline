@@ -35,8 +35,8 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const CATEGORY_MAP: Record<string, string> = {
   'active fire': 'wildfire',
   'fire (between suppression of the main fronts and full suppression)': 'suppression',
-  'announcement / meeting / event by the greek government': 'state-agency-action',
-  'announcement / meeting / event  by the greek government': 'state-agency-action',
+  'announcement / meeting / event by the greek government': 'reconstruction-governance',
+  'announcement / meeting / event  by the greek government': 'reconstruction-governance',
   'announcement / meeting / event by other official state agencies': 'state-agency-action',
   'announcement / meeting / event  by other official state agencies': 'state-agency-action',
   'announcement / meeting / event by local municipalities': 'municipal-action',

@@ -7,12 +7,10 @@ import {
   type ZoomBehavior,
   type ZoomTransform
 } from 'd3';
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import {
-  getCategoryColor,
   getCategoryLabel,
-  getCategorySymbol,
-  type CategorySymbol
+  getCategorySvgIcon,
 } from '@/lib/timeline/categories';
 import { buildTickSpec, createBaseTimeScale } from '@/lib/timeline/ticks';
 import type { TimelineEvent } from '@/lib/timeline/types';
@@ -24,18 +22,27 @@ type D3TimelineProps = {
   onSelectEvent: (eventId: string | null) => void;
 };
 
+type BandId = 'evia' | 'attica' | 'rest';
+
 type PositionedEvent = TimelineEvent & {
-  band: 'evia' | 'greece';
+  band: BandId;
   laneIndex: number;
   y: number;
 };
 
+type BandInfo = {
+  id: BandId;
+  label: string;
+  laneCount: number;
+  bandHeight: number;
+  topY: number;
+};
+
 type BandLayout = {
   events: PositionedEvent[];
-  topLaneCount: number;
-  bottomLaneCount: number;
+  bands: BandInfo[];
+  dividers: number[];
   height: number;
-  centerY: number;
 };
 
 type PlotSelection = Selection<SVGSVGElement, unknown, null, undefined>;
@@ -54,9 +61,10 @@ const margin = {
 };
 
 const minimumInnerWidth = 680;
-const eventHeight = 14;
-const laneGap = 8;
-const centerGap = 24;
+const defaultLaneHeight = 24;
+const eviaLaneHeight = 56;
+const pointIconSize = 16;
+const laneGap = 4;
 const pointCollisionMs = 86_400_000;
 const eventMinWidth = 6;
 
@@ -75,14 +83,16 @@ function getEventEndTs(event: TimelineEvent): number {
   return event.startTs + pointCollisionMs;
 }
 
-function isEviaEvent(event: TimelineEvent): boolean {
-  return event.places.some((placeId) => /evia/i.test(placeId));
+function classifyBand(event: TimelineEvent): BandId {
+  if (event.places.some((p) => /evia/i.test(p))) return 'evia';
+  if (event.places.some((p) => /attic/i.test(p))) return 'attica';
+  return 'rest';
 }
 
 function packBand(
   events: TimelineEvent[],
-  band: PositionedEvent['band']
-): Array<TimelineEvent & { laneIndex: number; band: PositionedEvent['band'] }> {
+  band: BandId
+): Array<TimelineEvent & { laneIndex: number; band: BandId }> {
   const sorted = [...events].sort((a, b) => {
     if (a.startTs !== b.startTs) {
       return a.startTs - b.startTs;
@@ -101,7 +111,7 @@ function packBand(
 
   return sorted.map((event) => {
     const eventEndTs = getEventEndTs(event);
-    let laneIndex = laneEndTs.findIndex((laneEnd) => laneEnd + pointCollisionMs < event.startTs);
+    let laneIndex = laneEndTs.findIndex((laneEnd) => laneEnd <= event.startTs);
 
     if (laneIndex === -1) {
       laneIndex = laneEndTs.length;
@@ -118,39 +128,79 @@ function packBand(
   });
 }
 
+const bandDefs: { id: BandId; label: string; laneHeight: number }[] = [
+  { id: 'evia', label: 'EVIA', laneHeight: eviaLaneHeight },
+  { id: 'attica', label: 'ATTICA', laneHeight: defaultLaneHeight },
+  { id: 'rest', label: 'REST OF GREECE', laneHeight: defaultLaneHeight },
+];
+
+const dividerGap = 20;
+
 function computeBandLayout(events: TimelineEvent[]): BandLayout {
-  const eviaEvents = events.filter(isEviaEvent);
-  const greeceEvents = events.filter((event) => !isEviaEvent(event));
+  const grouped: Record<BandId, TimelineEvent[]> = { evia: [], attica: [], rest: [] };
+  for (const e of events) {
+    grouped[classifyBand(e)].push(e);
+  }
 
-  const packedTop = packBand(eviaEvents, 'evia');
-  const packedBottom = packBand(greeceEvents, 'greece');
+  const packed = bandDefs.map((def) => ({
+    def,
+    events: packBand(grouped[def.id], def.id),
+  }));
 
-  const topLaneCount = Math.max(1, packedTop.reduce((max, event) => Math.max(max, event.laneIndex + 1), 0));
-  const bottomLaneCount = Math.max(1, packedBottom.reduce((max, event) => Math.max(max, event.laneIndex + 1), 0));
+  const laneCounts = packed.map(
+    (b) => Math.max(1, b.events.reduce((mx, e) => Math.max(mx, e.laneIndex + 1), 0))
+  );
 
-  const topHeight = topLaneCount * eventHeight + Math.max(0, topLaneCount - 1) * laneGap;
-  const bottomHeight = bottomLaneCount * eventHeight + Math.max(0, bottomLaneCount - 1) * laneGap;
+  const bandHeights = laneCounts.map(
+    (lc, i) => lc * packed[i].def.laneHeight + Math.max(0, lc - 1) * laneGap
+  );
 
-  const centerY = topHeight + centerGap;
-  const height = topHeight + bottomHeight + centerGap * 2;
+  // Compute top-Y for each band.
+  // Between Evia and Attica: no gap — the fire bars sit right on the divider line.
+  // Between Attica and Rest: normal dividerGap.
+  const topYs: number[] = [];
+  let cursor = 0;
+  for (let i = 0; i < bandDefs.length; i++) {
+    topYs.push(cursor);
+    const gapAfter = i === 0 ? 0 : dividerGap;
+    cursor += bandHeights[i] + gapAfter;
+  }
 
-  const positionedEvents: PositionedEvent[] = [
-    ...packedTop.map((event) => ({
+  const totalHeight = cursor;
+
+  // Divider Y positions: Evia/Attica line sits at the bottom edge of the Evia band.
+  // Attica/Rest line sits centered in the gap between those bands.
+  const dividers: number[] = [];
+  dividers.push(topYs[0] + bandHeights[0]); // Evia/Attica: right at the bottom of Evia
+  if (bandDefs.length > 2) {
+    dividers.push(topYs[1] + bandHeights[1] + dividerGap / 2); // Attica/Rest: centered in gap
+  }
+
+  const bands: BandInfo[] = bandDefs.map((def, i) => ({
+    id: def.id,
+    label: def.label,
+    laneCount: laneCounts[i],
+    bandHeight: bandHeights[i],
+    topY: topYs[i],
+  }));
+
+  const positionedEvents: PositionedEvent[] = packed.flatMap((b, bi) => {
+    const lh = b.def.laneHeight;
+    const maxLane = laneCounts[bi] - 1;
+    return b.events.map((event) => ({
       ...event,
-      y: centerY - centerGap - eventHeight - event.laneIndex * (eventHeight + laneGap)
-    })),
-    ...packedBottom.map((event) => ({
-      ...event,
-      y: centerY + centerGap + event.laneIndex * (eventHeight + laneGap)
-    }))
-  ];
+      // Evia band: reverse lanes so lane 0 (fire/suppression) sits at the bottom, near the divider
+      y: b.def.id === 'evia'
+        ? topYs[bi] + (maxLane - event.laneIndex) * (lh + laneGap)
+        : topYs[bi] + event.laneIndex * (lh + laneGap),
+    }));
+  });
 
   return {
     events: positionedEvents,
-    topLaneCount,
-    bottomLaneCount,
-    height,
-    centerY
+    bands,
+    dividers,
+    height: totalHeight,
   };
 }
 
@@ -225,47 +275,7 @@ function truncateLabel(label: string, maxChars: number): string {
   return `${label.slice(0, maxChars - 1)}...`;
 }
 
-function renderPointMarker(
-  symbol: CategorySymbol,
-  x: number,
-  y: number,
-  size: number,
-  fill: string,
-  stroke: string,
-  strokeWidth: number
-): ReactNode {
-  if (symbol === 'square') {
-    return (
-      <rect
-        x={x - size}
-        y={y - size}
-        width={size * 2}
-        height={size * 2}
-        style={{ fill, stroke, strokeWidth }}
-      />
-    );
-  }
-
-  if (symbol === 'diamond') {
-    return (
-      <polygon
-        points={`${x},${y - size} ${x + size},${y} ${x},${y + size} ${x - size},${y}`}
-        style={{ fill, stroke, strokeWidth }}
-      />
-    );
-  }
-
-  if (symbol === 'triangle') {
-    return (
-      <polygon
-        points={`${x},${y - size} ${x + size},${y + size} ${x - size},${y + size}`}
-        style={{ fill, stroke, strokeWidth }}
-      />
-    );
-  }
-
-  return <circle cx={x} cy={y} r={size} style={{ fill, stroke, strokeWidth }} />;
-}
+const ICON_BASE = '/images/legend/';
 
 export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D3TimelineProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -283,7 +293,6 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const minimumTimelineHeight = Math.max(220, Math.round(hostHeight));
   const timelineHeight = Math.max(layout.height, minimumTimelineHeight);
   const verticalOffset = Math.max(0, Math.round((timelineHeight - layout.height) / 2));
-  const dividerY = layout.centerY + verticalOffset;
   const svgHeight = margin.top + timelineHeight + margin.bottom;
   const innerWidth = Math.max(minimumInnerWidth, width - margin.left - margin.right);
 
@@ -472,6 +481,21 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
               );
             })}
 
+            {/* Band labels rotated 90° (outside clip so they don't get cut) */}
+            {layout.bands.map((band) => {
+              const topY = band.topY + verticalOffset + 4;
+              return (
+                <text
+                  key={band.id}
+                  className="timeline-zone-label"
+                  transform={`translate(14, ${topY}) rotate(-90)`}
+                  textAnchor="end"
+                >
+                  {band.label}
+                </text>
+              );
+            })}
+
             <g clipPath={`url(#${clipId})`}>
               {fireSeasons.map((season) => {
                 const xStart = visibleScale(new Date(season.startTs));
@@ -490,36 +514,31 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 );
               })}
 
-              <line x1={0} x2={innerWidth} y1={dividerY} y2={dividerY} className="timeline-divider-line" />
-              <text
-                className="timeline-zone-label"
-                transform={`translate(4, ${dividerY - centerGap - 4}) rotate(-90)`}
-                textAnchor="start"
-              >
-                Evia island events
-              </text>
-              <text
-                className="timeline-zone-label"
-                transform={`translate(4, ${dividerY + centerGap + 4}) rotate(-90)`}
-                textAnchor="end"
-              >
-                Rest of Greece events
-              </text>
-
               {layout.events.map((event) => {
-                const color = getCategoryColor(event.category);
                 const xStart = visibleScale(new Date(event.startTs));
                 const xEnd = visibleScale(new Date(event.endTs ?? event.startTs));
-                const yMid = event.y + verticalOffset + eventHeight / 2;
+                const hasDuration = !!(event.endTs && event.endTs !== event.startTs);
+                const bandLaneH = event.band === 'evia' ? eviaLaneHeight : defaultLaneHeight;
+                const yTop = event.y + verticalOffset;
+                const yMid = yTop + bandLaneH / 2;
                 const isSelected = event.id === selectedEventId;
                 const widthPx = Math.max(eventMinWidth, xEnd - xStart);
 
-                const markerSize = isSelected ? 5.6 : 4.4;
-                const markerStroke = isSelected ? 'var(--color-text)' : '#ffffff';
-                const markerStrokeWidth = isSelected ? 1.2 : 0.8;
+                const iconFile = getCategorySvgIcon(event.category, hasDuration);
+                const iconHref = `${ICON_BASE}${iconFile}`;
 
-                const locationLabel = event.band === 'evia' ? 'Evia island' : 'rest of Greece';
-                const eventLabel = `${event.title}. ${event.displayDate}. ${locationLabel}. Category ${getCategoryLabel(event.category)}.`;
+                // Point events: 16×16 icon centred on the start position
+                // Duration events: keep native aspect ratio (24:14), tile via pattern
+                const iconW = hasDuration ? widthPx : 16;
+                const iconH = hasDuration ? bandLaneH : pointIconSize;
+                const iconX = hasDuration ? xStart : xStart - pointIconSize / 2;
+                const iconY = hasDuration ? yTop : yMid - pointIconSize / 2;
+                // For duration: one tile keeps the SVG's native 24×14 ratio
+                const tileW = bandLaneH * (24 / 14);
+                const patternId = `pat-${event.id.replace(/[^a-zA-Z0-9-]/g, '')}`;
+
+                const bandLabel = event.band === 'evia' ? 'Evia' : event.band === 'attica' ? 'Attica' : 'rest of Greece';
+                const eventLabel = `${event.title}. ${event.displayDate}. ${bandLabel}. Category ${getCategoryLabel(event.category)}.`;
 
                 return (
                   <g
@@ -538,36 +557,60 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                         onSelectEvent(event.id);
                       }
                     }}
+                    style={{ opacity: isSelected ? 1 : 0.85 }}
                   >
-                    {event.isDuration ? (
-                      <rect
-                        x={xStart}
-                        y={event.y + verticalOffset}
-                        width={widthPx}
-                        height={eventHeight}
-                        rx={2}
-                        style={{
-                          fill: color,
-                          opacity: isSelected ? 0.88 : 0.5,
-                          stroke: isSelected ? 'var(--color-text)' : color,
-                          strokeWidth: isSelected ? 1.2 : 0.8
-                        }}
-                      />
+                    {hasDuration ? (
+                      <>
+                        <defs>
+                          <pattern
+                            id={patternId}
+                            width={tileW}
+                            height={iconH}
+                            patternUnits="userSpaceOnUse"
+                            x={iconX}
+                            y={iconY}
+                          >
+                            <image
+                              href={iconHref}
+                              width={tileW}
+                              height={iconH}
+                              preserveAspectRatio="none"
+                            />
+                          </pattern>
+                        </defs>
+                        <rect
+                          x={iconX}
+                          y={iconY}
+                          width={iconW}
+                          height={iconH}
+                          fill={`url(#${patternId})`}
+                        />
+                      </>
                     ) : (
-                      renderPointMarker(
-                        getCategorySymbol(event.category),
-                        xStart,
-                        yMid,
-                        markerSize,
-                        color,
-                        markerStroke,
-                        markerStrokeWidth
-                      )
+                      <image
+                        href={iconHref}
+                        x={iconX}
+                        y={iconY}
+                        width={iconW}
+                        height={iconH}
+                        preserveAspectRatio="xMidYMid meet"
+                      />
+                    )}
+                    {isSelected && (
+                      <rect
+                        x={iconX - 1}
+                        y={iconY - 1}
+                        width={iconW + 2}
+                        height={iconH + 2}
+                        fill="none"
+                        stroke="var(--color-text)"
+                        strokeWidth={1.2}
+                      />
                     )}
 
                     {labelVisibility.get(event.id) && (
                       <text
-                        x={event.isDuration ? xStart + Math.min(10, widthPx + 6) : xStart + 9}
+                        x={hasDuration ? xStart + Math.min(10, widthPx + 6) : xStart + 12}
                         y={yMid - 5}
                         className={`timeline-event-label ${isSelected ? 'is-selected' : ''}`}
                       >
@@ -578,6 +621,18 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 );
               })}
             </g>
+
+            {/* Divider lines — rendered last so they draw on top of events */}
+            {layout.dividers.map((dy, i) => (
+              <line
+                key={`div-${i}`}
+                x1={0}
+                x2={innerWidth}
+                y1={dy + verticalOffset}
+                y2={dy + verticalOffset}
+                className={`timeline-divider-line ${i === 0 ? 'divider-primary' : 'divider-secondary'}`}
+              />
+            ))}
           </g>
         </svg>
       </div>

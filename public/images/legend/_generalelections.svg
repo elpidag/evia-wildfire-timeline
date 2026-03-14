@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ccd2e2;
+        font-family: BebasNeue-Regular, 'Bebas Neue';
+        font-size: 18px;
+      }
+
+      .cls-2 {
+        fill: #010101;
+      }
+    </style>
+  </defs>
+  <text class="cls-1" transform="translate(1.18 -2.79)"><tspan x="0" y="0">@</tspan></text>
+  <path class="cls-2" d="M8,2c3.31,0,6,2.69,6,6s-2.69,6-6,6S2,11.31,2,8,4.69,2,8,2M8,0C3.58,0,0,3.58,0,8s3.58,8,8,8,8-3.58,8-8S12.42,0,8,0h0Z"/>
+  <circle class="cls-2" cx="8" cy="8" r="4.57"/>
+</svg>

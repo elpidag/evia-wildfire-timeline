@@ -12,19 +12,13 @@ import TimelineWorkspace from '../components/timeline/TimelineWorkspace.tsx';
   <TimelineWorkspace client:load />
 
   <script>
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      // If the click is inside the timeline SVG area, nav links, or interactive panels — do nothing
-      if (
-        target.closest('.timeline-host') ||
-        target.closest('.timeline-nav') ||
-        target.closest('.timeline-toolbar') ||
-        target.closest('a') ||
-        target.closest('button')
-      ) {
-        return;
+    document.addEventListener('keydown', (e) => {
+      // Ignore if user is focused on an input or the timeline host (which uses arrow keys for panning)
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
+      if (e.key === 'ArrowRight') {
+        window.location.href = '/presentation/reconstruction';
       }
-      window.location.href = '/presentation/reconstruction';
     });
   </script>
 </BaseLayout>

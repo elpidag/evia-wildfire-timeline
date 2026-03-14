@@ -396,7 +396,15 @@ a:hover {
 
 .timeline-divider-line {
   stroke: var(--color-swatch-blue-2);
-  stroke-width: 4.5;
+  stroke-width: 3;
+}
+
+.timeline-divider-line.divider-primary {
+  stroke-width: 3;
+}
+
+.timeline-divider-line.divider-secondary {
+  stroke-width: 0.75;
 }
 
 .timeline-event {
@@ -454,7 +462,7 @@ a:hover {
 .legend-panel {
   border: none;
   background: transparent;
-  padding: var(--space-4) 0 0;
+  padding: var(--space-4) 0 0 26px;
   flex-shrink: 0;
 }
 
