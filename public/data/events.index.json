@@ -376,6 +376,46 @@
     ]
   },
   {
+    "id": "evia-2013-phase-i",
+    "slug": "phase-i",
+    "title": "PHASE I",
+    "summary": "Phase I of the Special Urban Planning for the municipality Limni,Mantoudi, Agia Anna",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2013-07-01",
+    "end": "2014-01-15",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2013-07-01 to 2014-01-15",
+    "startTs": 1372636800000,
+    "endTs": 1389830399000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
     "id": "evia-2013-legislation-changes",
     "slug": "legislation-changes",
     "title": "Legislation changes",
@@ -418,6 +458,86 @@
         "id": "place-attica",
         "name": "Attica",
         "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2014-phase-ii",
+    "slug": "phase-ii",
+    "title": "PHASE II",
+    "summary": "Phase II of the Special Urban Planning for the municipality Limni,Mantoudi, Agia Anna",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2014-08-14",
+    "end": "2015-03-20",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2014-08-14 to 2015-03-20",
+    "startTs": 1407974400000,
+    "endTs": 1426895999000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2015-phase-iii",
+    "slug": "phase-iii",
+    "title": "PHASE III",
+    "summary": "Phase III of the Special Urban Planning for the municipality Limni,Mantoudi, Agia Anna",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2015-05-01",
+    "end": "2017-05-19",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2015-05-01 to 2017-05-19",
+    "startTs": 1430438400000,
+    "endTs": 1495238399000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
       }
     ]
   },
@@ -1129,7 +1249,7 @@
     "id": "evia-2021-fire-between-suppression-of-the-main-fronts-and-full-suppres",
     "slug": "fire-between-suppression-of-the-main-fronts-and-full-suppres",
     "title": "Fire (between suppression of the main fronts and full suppression)",
-    "summary": "Fire (between suppression of the main fronts and full suppression)",
+    "summary": "Full suppression of the fire fronts announced by the fire brigadeon 18-09-2021",
     "body": "",
     "category": "suppression",
     "start": "2021-08-14",
@@ -1478,10 +1598,10 @@
     ]
   },
   {
-    "id": "evia-2021-1st-bulletin-knoukla",
-    "slug": "1st-bulletin-knoukla",
-    "title": "1st bulletin 'KNOUKLA'",
-    "summary": "1st Information bulletin is published by the Initiative of citizens affected by the fire in N. Evia",
+    "id": "evia-2021-2nd-bulletin-knoukla",
+    "slug": "2nd-bulletin-knoukla",
+    "title": "2nd bulletin 'KNOUKLA'",
+    "summary": "2ne Information bulletin is published by the Initiative of citizens affected by the fire in N. Evia, with analysis of the current situation and a list of their demands and needs.",
     "body": "",
     "category": "civil-society-action",
     "start": "2021-10-02",
@@ -1520,8 +1640,8 @@
   {
     "id": "evia-2021-athina",
     "slug": "athina",
-    "title": "ATHINA'",
-    "summary": "floodings..",
+    "title": "ATHINA",
+    "summary": "Severe floodings in the area of Northern Evia after consecutive days of rainfall.",
     "body": "",
     "category": "flood",
     "start": "2021-10-09",
@@ -1550,10 +1670,10 @@
     ]
   },
   {
-    "id": "evia-2021-2nd-bulletin-knoukla",
-    "slug": "2nd-bulletin-knoukla",
-    "title": "2nd bulletin 'KNOUKLA'",
-    "summary": "2ne Information bulletin is published by the Initiative of citizens affected by the fire in N. Evia, with analysis of the current situation and a list of their demands and needs.",
+    "id": "evia-2021-1st-bulletin-knoukla",
+    "slug": "1st-bulletin-knoukla",
+    "title": "1st bulletin 'KNOUKLA'",
+    "summary": "1st Information bulletin is published by the Initiative of citizens affected by the fire in N. Evia",
     "body": "",
     "category": "civil-society-action",
     "start": "2021-10-14",
@@ -1636,12 +1756,12 @@
     ]
   },
   {
-    "id": "evia-2021-announcement-meeting-event-by-local-municipalities-1",
-    "slug": "announcement-meeting-event-by-local-municipalities",
-    "title": "Announcement / Meeting / Event  by local municipalities",
+    "id": "evia-2021-announcement-meetings-events-demonstrations-by-civil-society-1",
+    "slug": "announcement-meetings-events-demonstrations-by-civil-society",
+    "title": "Announcement / Meetings / Events / Demonstrations by civil society",
     "summary": "Tour of artistic groups within the area in solidarity of the local residents through cultural events",
     "body": "",
-    "category": "municipal-action",
+    "category": "civil-society-action",
     "start": "2021-10-28",
     "end": "2021-10-30",
     "datePrecision": "day",
@@ -1719,7 +1839,7 @@
     "id": "evia-2021-announcement",
     "slug": "announcement",
     "title": "Announcement",
-    "summary": "Christos Triantopoullos announcedt of 20mil. For the relief of floodings in Evia",
+    "summary": "Christos Triantopoullos announced a relief fund package of 20mil. € for support of the citizens whose properties where destroyed by recent floodings in N. Evia.",
     "body": "",
     "category": "reconstruction-governance",
     "start": "2021-11-10",
@@ -1762,7 +1882,47 @@
     ]
   },
   {
-    "id": "evia-2021-announcement-meetings-events-demonstrations-by-civil-society-1",
+    "id": "evia-2021-works-by-the-forestry-service",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Restoration and improvement construction works on forest roads of the area",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-12-01",
+    "end": "2023-11-30",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-12-01 to 2023-11-30",
+    "startTs": 1638316800000,
+    "endTs": 1701388799000,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2021-announcement-meetings-events-demonstrations-by-civil-society-2",
     "slug": "announcement-meetings-events-demonstrations-by-civil-society",
     "title": "Announcement / Meetings / Events / Demonstrations by civil society",
     "summary": "Protest organised in Athens by the Union of the Temporary employees of the Fire Department is met with violence by MAT police",
@@ -1860,12 +2020,52 @@
     ]
   },
   {
+    "id": "evia-2021-announcements-events-meetings-works-by-diazoma",
+    "slug": "announcements-events-meetings-works-by-diazoma",
+    "title": "Announcements-Events-Meetings-Works by Diazoma",
+    "summary": "Masterplan studies of 'Evia Meta'",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2021-12-12",
+    "end": "2023-01-15",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2021-12-12 to 2023-01-15",
+    "startTs": 1639267200000,
+    "endTs": 1673827199000,
+    "actors": [
+      "actor-diazoma"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-diazoma",
+        "name": "Diazoma",
+        "slug": "diazoma"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
     "id": "evia-2021-open-meeting",
     "slug": "open-meeting",
     "title": "Open Meeting",
-    "summary": "Meeting of DIAZOMA with mayors of the local municipalities of Limni, Mantoudi, Agia Anna & Istiaia, Aidipsos and local citizens",
+    "summary": "Meeting of Diazoma with mayors of the local municipalities of Limni, Mantoudi, Agia Anna & Istiaia, Aidipsos and local citizens",
     "body": "",
-    "category": "municipal-action",
+    "category": "state-agency-action",
     "start": "2021-12-14",
     "end": "2021-12-15",
     "datePrecision": "day",
@@ -1931,6 +2131,330 @@
         "id": "actor-mayor-of-limni",
         "name": "Mayor of Limni",
         "slug": "mayor-of-limni"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-works-by-the-forestry-service-1",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Τechnical works for the management of the stream 'Xiropotamos' & the complex of water sub-basins of the southwestern  slopes of Mount Kandili",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-01-20",
+    "end": "2023-07-02",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-01-20 to 2023-07-02",
+    "startTs": 1642636800000,
+    "endTs": 1688342399000,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-works-by-the-forestry-service-3",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Reforestation event organisde by Limni’s forestry office, sponsored by WE 4all",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-02-14",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-02-14",
+    "startTs": 1644796800000,
+    "endTs": null,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-works-by-the-forestry-service-2",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Restoration and maintenance projects of forest recreation areas",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-02-28",
+    "end": "2023-07-27",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-02-28 to 2023-07-27",
+    "startTs": 1646006400000,
+    "endTs": 1690502399000,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-announcements-events-meetings-works-by-diazoma-1",
+    "slug": "announcements-events-meetings-works-by-diazoma",
+    "title": "Announcements-Events-Meetings-Works by Diazoma",
+    "summary": "Meeting of DIAZOMA with local formal entities and local citizens with presentations of the 1st phase of the studies",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-03-18",
+    "end": "2022-03-21",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-03-18 to 2022-03-21",
+    "startTs": 1647561600000,
+    "endTs": 1647907199000,
+    "actors": [
+      "actor-s-benos",
+      "actor-diazoma"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-s-benos",
+        "name": "S. Benos",
+        "slug": "s-benos"
+      },
+      {
+        "id": "actor-diazoma",
+        "name": "Diazoma",
+        "slug": "diazoma"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-announcements-events-meetings-works-by-diazoma",
+    "slug": "announcements-events-meetings-works-by-diazoma",
+    "title": "Announcements-Events-Meetings-Works by Diazoma",
+    "summary": "Meeting of DIAZOMA with local formal entities and local citizens",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-06-03",
+    "end": "2022-06-05",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-06-03 to 2022-06-05",
+    "startTs": 1654214400000,
+    "endTs": 1654473599000,
+    "actors": [
+      "actor-s-benos",
+      "actor-diazoma"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-s-benos",
+        "name": "S. Benos",
+        "slug": "s-benos"
+      },
+      {
+        "id": "actor-diazoma",
+        "name": "Diazoma",
+        "slug": "diazoma"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-fek-347b",
+    "slug": "fek-347b",
+    "title": "FEK 347B",
+    "summary": "The North Evia–Samos Pass 2022 is enacted, offering digital cards worth €150 (Evia) and €300 (Samos) to residents across the country, encouraging them to choose these areas for tourism as a way to support the local economy",
+    "body": "",
+    "category": "legislation",
+    "start": "2022-06-28",
+    "end": null,
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-06-28",
+    "startTs": 1656374400000,
+    "endTs": null,
+    "actors": [
+      "actor-greek-central-government"
+    ],
+    "places": [
+      "place-attica"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-greek-central-government",
+        "name": "Greek central government",
+        "slug": "greek-central-government"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-attica",
+        "name": "Attica",
+        "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-announcement-meeting-event-by-the-greek-government",
+    "slug": "announcement-meeting-event-by-the-greek-government",
+    "title": "Announcement / Meeting / Event by the greek government",
+    "summary": "Period during which the North Evia Pass vouchers were used",
+    "body": "",
+    "category": "reconstruction-governance",
+    "start": "2022-07-31",
+    "end": "2022-10-26",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-07-31 to 2022-10-26",
+    "startTs": 1659225600000,
+    "endTs": 1666828799000,
+    "actors": [],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2022-works-by-the-forestry-service",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Completion of reforestation of areas of the pulic forest of Limni",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2022-11-22",
+    "end": "2022-11-24",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2022-11-22 to 2022-11-24",
+    "startTs": 1669075200000,
+    "endTs": 1669334399000,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
       }
     ],
     "placeLabels": [
@@ -2098,6 +2622,86 @@
     ]
   },
   {
+    "id": "evia-2023-phase-i",
+    "slug": "phase-i",
+    "title": "PHASE I",
+    "summary": "Phase I of the Special Urban Planning for the municipalities of Limni,Mantoudi, Agia Anna & Istiaia, Aidipsos",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2023-01-16",
+    "end": "2023-07-31",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2023-01-16 to 2023-07-31",
+    "startTs": 1673827200000,
+    "endTs": 1690847999000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
+    "id": "evia-2023-works-by-the-forestry-service",
+    "slug": "works-by-the-forestry-service",
+    "title": "Works by the Forestry Service",
+    "summary": "Construction works for fire prevention projects funded by ANTINERO II",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2023-06-20",
+    "end": "2023-02-14",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2023-06-20 to 2023-02-14",
+    "startTs": 1687219200000,
+    "endTs": 1676419199000,
+    "actors": [
+      "actor-forestry-service"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-forestry-service",
+        "name": "Forestry Service",
+        "slug": "forestry-service"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
+      }
+    ]
+  },
+  {
     "id": "evia-2023-rhodes",
     "slug": "rhodes",
     "title": "RHODES",
@@ -2140,6 +2744,46 @@
         "id": "place-rhodes",
         "name": "Rhodes",
         "slug": "rhodes"
+      }
+    ]
+  },
+  {
+    "id": "evia-2023-phase-ii",
+    "slug": "phase-ii",
+    "title": "PHASE II",
+    "summary": "Phase II of the Special Urban Planning for the municipalities of Limni,Mantoudi, Agia Anna & Istiaia, Aidipsos",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2023-07-31",
+    "end": "2025-07-31",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2023-07-31 to 2025-07-31",
+    "startTs": 1690761600000,
+    "endTs": 1754006399000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
       }
     ]
   },
@@ -2232,6 +2876,46 @@
         "id": "place-attica",
         "name": "Attica",
         "slug": "attica"
+      }
+    ]
+  },
+  {
+    "id": "evia-2025-phase-i",
+    "slug": "phase-i",
+    "title": "PHASE IΙΙ",
+    "summary": "Phase II of the Special Urban Planning for the municipalities of Limni,Mantoudi, Agia Anna & Istiaia, Aidipsos",
+    "body": "",
+    "category": "state-agency-action",
+    "start": "2025-07-31",
+    "end": "2026-03-18",
+    "datePrecision": "day",
+    "isOngoing": false,
+    "displayDate": "2025-07-31 to 2026-03-18",
+    "startTs": 1753920000000,
+    "endTs": 1773878399000,
+    "actors": [
+      "actor-regional-government-of-sterea-ellada"
+    ],
+    "places": [
+      "place-north-evia"
+    ],
+    "tags": [],
+    "sourceRefs": [],
+    "imageRefs": [],
+    "coverImage": null,
+    "featured": false,
+    "actorLabels": [
+      {
+        "id": "actor-regional-government-of-sterea-ellada",
+        "name": "Regional Government of Sterea Ellada",
+        "slug": "regional-government-of-sterea-ellada"
+      }
+    ],
+    "placeLabels": [
+      {
+        "id": "place-north-evia",
+        "name": "North Evia",
+        "slug": "north-evia"
       }
     ]
   },
