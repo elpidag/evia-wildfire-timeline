@@ -385,6 +385,9 @@ a:hover {
   background: rgba(180, 180, 180, 0.28);
   padding: 16px;
 }
+.event-detail-card + .event-detail-card {
+  margin-left: 8px;
+}
 
 .event-detail-header {
   display: flex;

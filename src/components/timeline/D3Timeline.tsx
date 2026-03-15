@@ -20,6 +20,10 @@ type D3TimelineProps = {
   events: TimelineEvent[];
   selectedEventId: string | null;
   onSelectEvent: (eventId: string | null) => void;
+  /** Optional focused date range [start, end] as ISO strings. Overrides the initial zoom. */
+  focusDomain?: [string, string];
+  /** Event IDs to visually highlight (scale 1.5×) on focused pages. */
+  highlightedIds?: Set<string>;
 };
 
 type BandId = 'evia' | 'attica' | 'rest';
@@ -44,6 +48,10 @@ type BandLayout = {
   bands: BandInfo[];
   dividers: number[];
   height: number;
+  /** Top Y of Evia lane 0 (fire lane) — used to position point events */
+  eviaFireLaneTopY: number;
+  /** Bottom Y of Attica lane 0 (fire lane) — used to position point events */
+  atticaFireLaneBottomY: number;
 };
 
 type PlotSelection = Selection<SVGSVGElement, unknown, null, undefined>;
@@ -135,9 +143,22 @@ function packBand(
     const pointEvents = otherEvents.filter((e) => !e.endTs || e.endTs === e.startTs);
     const durationEvents = otherEvents.filter((e) => e.endTs && e.endTs !== e.startTs);
 
+    // Spatial planning events all share one lane
+    const spatialEvents = durationEvents.filter((e) => isSpatialPlanning(e));
+    const otherDurationEvents = durationEvents.filter((e) => !isSpatialPlanning(e));
+
     const durBaseLane = laneEndTs.length;
+    let nextDurLane = 0;
+
+    if (spatialEvents.length > 0) {
+      for (const event of spatialEvents) {
+        result.push({ ...event, laneIndex: durBaseLane, band });
+      }
+      nextDurLane = 1;
+    }
+
     const durLaneEndTs: number[] = [];
-    for (const event of durationEvents) {
+    for (const event of otherDurationEvents) {
       const eventEndTs = getEventEndTs(event);
       let subLane = durLaneEndTs.findIndex((laneEnd) => laneEnd <= event.startTs);
       if (subLane === -1) {
@@ -146,11 +167,11 @@ function packBand(
       } else {
         durLaneEndTs[subLane] = eventEndTs;
       }
-      result.push({ ...event, laneIndex: durBaseLane + subLane, band });
+      result.push({ ...event, laneIndex: durBaseLane + nextDurLane + subLane, band });
     }
 
     // Point events: pack on lanes right after duration events
-    const pointBaseLane = durBaseLane + durLaneEndTs.length;
+    const pointBaseLane = durBaseLane + nextDurLane + durLaneEndTs.length;
     const pointLaneEndTs: number[] = [];
     for (const event of pointEvents) {
       const eventEndTs = getEventEndTs(event);
@@ -211,19 +232,28 @@ function computeBandLayout(events: TimelineEvent[]): BandLayout {
     (b) => Math.max(1, b.events.reduce((mx, e) => Math.max(mx, e.laneIndex + 1), 0))
   );
 
-  // Compute per-lane heights: environmental lanes in Evia use eviaLaneHeight, others use defaultLaneHeight
+  // Compute per-lane heights:
+  // - Environmental lanes in Evia use eviaLaneHeight
+  // - Non-env duration lanes use defaultLaneHeight
+  // - Non-env point-only lanes in Evia/Attica use compact height (positioned at fire lane edge)
+  const compactLaneHeight = 0;
   const perLaneHeights: number[][] = packed.map((b, bi) => {
     const lc = laneCounts[bi];
-    if (b.def.id !== 'evia') {
+    if (b.def.id === 'rest') {
       return Array(lc).fill(defaultLaneHeight) as number[];
     }
-    // For Evia: check which lanes have environmental events
     const laneHasEnv = new Set<number>();
+    const laneHasDuration = new Set<number>();
     for (const e of b.events) {
       if (environmentalCategories.has(e.category)) laneHasEnv.add(e.laneIndex);
+      if (e.endTs && e.endTs !== e.startTs) laneHasDuration.add(e.laneIndex);
     }
     return Array.from({ length: lc }, (_, lane) =>
-      laneHasEnv.has(lane) ? eviaLaneHeight : defaultLaneHeight
+      laneHasEnv.has(lane)
+        ? (b.def.id === 'evia' ? eviaLaneHeight : defaultLaneHeight)
+        : laneHasDuration.has(lane)
+          ? defaultLaneHeight
+          : compactLaneHeight
     );
   });
 
@@ -280,11 +310,19 @@ function computeBandLayout(events: TimelineEvent[]): BandLayout {
     }));
   });
 
+  // Evia lane 0 top Y (reversed): top edge of the fire lane
+  const eviaFireLaneTopY = topYs[0] + (bandHeights[0] - laneYOffsets[0][0] - perLaneHeights[0][0]);
+
+  // Attica lane 0 bottom Y (not reversed): bottom edge of the fire lane
+  const atticaFireLaneBottomY = topYs[1] + laneYOffsets[1][0] + perLaneHeights[1][0];
+
   return {
     events: positionedEvents,
     bands,
     dividers,
     height: totalHeight,
+    eviaFireLaneTopY,
+    atticaFireLaneBottomY,
   };
 }
 
@@ -335,7 +373,25 @@ function truncateLabel(label: string, maxChars: number): string {
 
 const ICON_BASE = '/images/legend/';
 
-export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D3TimelineProps) {
+const spatialPlanningIcons: Record<string, string> = {
+  'phase-i': '_spatialplanning-phase1.svg',
+  'phase-ii': '_spatialplanning-phase2.svg',
+  'phase-iii': '_spatialplanning-completed.svg',
+};
+
+function isSpatialPlanning(event: TimelineEvent): boolean {
+  return event.summary.includes('Special Urban Planning');
+}
+
+function resolveIcon(event: TimelineEvent, hasDuration: boolean): string {
+  if (event.slug === 'works-by-the-forestry-service') return '_forestryserviceworks.svg';
+  if (isSpatialPlanning(event)) return spatialPlanningIcons[event.slug] ?? '_spatialplanning-phase1.svg';
+  if (event.id === 'evia-2021-announcement-meeting-event-by-local-municipalities-1')
+    return hasDuration ? '_civilsocitey-morethan1day.svg' : '_civilsociety.svg';
+  return getCategorySvgIcon(event.category, hasDuration);
+}
+
+export default function D3Timeline({ events, selectedEventId, onSelectEvent, focusDomain, highlightedIds }: D3TimelineProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const zoomBehaviorRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -354,7 +410,12 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const svgHeight = margin.top + timelineHeight + margin.bottom;
   const innerWidth = Math.max(minimumInnerWidth, width - margin.left - margin.right);
 
-  const baseDomain = FIXED_DOMAIN;
+  const baseDomain: [Date, Date] = useMemo(() => {
+    if (focusDomain) {
+      return [new Date(focusDomain[0]), new Date(focusDomain[1])];
+    }
+    return FIXED_DOMAIN;
+  }, [focusDomain]);
 
   const baseScale = useMemo(() => {
     return createBaseTimeScale(baseDomain, [0, innerWidth]);
@@ -374,7 +435,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   const fireSeasons = useMemo(() => buildFireSeasons(visibleDomain), [visibleDomain]);
 
   useEffect(() => {
-    if (!svgRef.current || innerWidth <= 0) {
+    if (!svgRef.current || innerWidth <= 0 || focusDomain) {
       return;
     }
 
@@ -419,7 +480,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
     return () => {
       svgSelection.on('.zoom', null);
     };
-  }, [innerWidth, timelineHeight]);
+  }, [innerWidth, timelineHeight, focusDomain]);
 
   const runZoomCommand = (
     command: (selection: PlotSelection, behavior: ZoomBehavior<SVGSVGElement, unknown>) => void
@@ -436,7 +497,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (!svgRef.current || !zoomBehaviorRef.current) {
+    if (!svgRef.current || !zoomBehaviorRef.current || focusDomain) {
       return;
     }
 
@@ -608,7 +669,13 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 );
               })}
 
-              {layout.events.map((event) => {
+              {/* Duration events first, then point events on top for z-order */}
+              {[...layout.events].sort((a, b) => {
+                const aIsPoint = !a.endTs || a.endTs === a.startTs;
+                const bIsPoint = !b.endTs || b.endTs === b.startTs;
+                if (aIsPoint === bIsPoint) return 0;
+                return aIsPoint ? 1 : -1;
+              }).map((event) => {
                 const xStart = visibleScale(new Date(event.startTs));
                 const xEnd = visibleScale(new Date(event.endTs ?? event.startTs));
                 const hasDuration = !!(event.endTs && event.endTs !== event.startTs);
@@ -618,7 +685,7 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 const isSelected = event.id === selectedEventId;
                 const widthPx = Math.max(eventMinWidth, xEnd - xStart);
 
-                const iconFile = getCategorySvgIcon(event.category, hasDuration);
+                const iconFile = resolveIcon(event, hasDuration);
                 const iconHref = `${ICON_BASE}${iconFile}`;
 
                 // Fire/suppression/flood point events use the full lane height
@@ -632,7 +699,8 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
 
                 // Point events: icon centred on the start position
                 // Duration events: keep native aspect ratio (24:14), tile via pattern
-                const selectedScale = (!hasDuration && isSelected) ? 1.5 : 1;
+                const isHighlighted = highlightedIds?.has(event.id) ?? false;
+                const selectedScale = (!hasDuration && (isSelected || isHighlighted)) ? 1.5 : 1;
                 const legScale = isLegislation ? 1.5 : 1;
                 const finalScale = Math.max(selectedScale, legScale);
                 const finalW = pointW * finalScale;
@@ -640,9 +708,19 @@ export default function D3Timeline({ events, selectedEventId, onSelectEvent }: D
                 const iconW = hasDuration ? widthPx : finalW;
                 const iconH = hasDuration ? laneH : finalH;
                 const iconX = hasDuration ? xStart : xStart - finalW / 2;
+                // Evia non-env point events: center on the top edge of the fire lane
+                const isEviaPoint = event.band === 'evia' && !hasDuration && !isEnvironmental && !isLegislation;
+                const eviaFireTop = layout.eviaFireLaneTopY + verticalOffset;
+                // Attica non-env point events: center on the bottom edge of the fire lane
+                const isAtticaPoint = event.band === 'attica' && !hasDuration && !isEnvironmental && !isLegislation;
+                const atticaFireBottom = layout.atticaFireLaneBottomY + verticalOffset;
                 const iconY = isLegislation
                   ? dividerY - finalH / 2
-                  : hasDuration ? yTop : yMid - finalH / 2;
+                  : isEviaPoint
+                    ? eviaFireTop - finalH / 2
+                    : isAtticaPoint
+                      ? atticaFireBottom - finalH / 2
+                      : hasDuration ? yTop : yMid - finalH / 2;
                 // For duration: one tile keeps the SVG's native 24×14 ratio
                 const tileW = laneH * (24 / 14);
                 const patternId = `pat-${event.id.replace(/[^a-zA-Z0-9-]/g, '')}`;

@@ -93,7 +93,7 @@ export default function TimelineLegend({ events: _events }: TimelineLegendProps)
         <span className="legend-entry">
           <Icon src="_diazomaevents1dayevent.svg" />
           <WideIcon src="_diazomaevents-morethan1day.svg" />
-          <span>Meetings-Events organised by &lsquo;DIAZOMA&rsquo;</span>
+          <span>Meetings-Events-Works by &lsquo;DIAZOMA&rsquo;</span>
         </span>
       </div>
       <div className="legend-row">

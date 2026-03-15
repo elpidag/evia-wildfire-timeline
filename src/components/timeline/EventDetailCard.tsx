@@ -17,7 +17,17 @@ type Props = {
 
 export default function EventDetailCard({ event }: Props) {
   const hasDur = !!(event.endTs && event.endTs !== event.startTs);
-  const iconFile = getCategorySvgIcon(event.category, hasDur);
+  const spatialIcons: Record<string, string> = {
+    'phase-i': '_spatialplanning-phase1.svg',
+    'phase-ii': '_spatialplanning-phase2.svg',
+    'phase-iii': '_spatialplanning-completed.svg',
+  };
+  const isSpatial = event.summary.includes('Special Urban Planning');
+  const iconFile = event.slug === 'works-by-the-forestry-service'
+    ? '_forestryserviceworks.svg'
+    : isSpatial
+      ? (spatialIcons[event.slug] ?? '_spatialplanning-phase1.svg')
+      : getCategorySvgIcon(event.category, hasDur);
   const iconHref = `${ICON_BASE}${iconFile}`;
   const dateStr = hasDur
     ? `${fmtDate(event.startTs)} — ${fmtDate(event.endTs!)}`

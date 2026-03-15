@@ -42,7 +42,12 @@ function filtersEqual(a: TimelineFilterState, b: TimelineFilterState): boolean {
   );
 }
 
-export default function TimelineWorkspace() {
+type WorkspaceProps = {
+  focusDomain?: [string, string];
+  highlightedIds?: string[];
+};
+
+export default function TimelineWorkspace({ focusDomain, highlightedIds }: WorkspaceProps = {}) {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [filters, setFilters] = useState<TimelineFilterState>(() => createEmptyFilters());
   const [sourcesById, setSourcesById] = useState<SourceLookup>({});
@@ -157,6 +162,20 @@ export default function TimelineWorkspace() {
     }
   }, [filters, isLoading, selectedEventId]);
 
+  const highlightedSet = useMemo(
+    () => (highlightedIds ? new Set(highlightedIds) : undefined),
+    [highlightedIds]
+  );
+
+  const highlightedEvents = useMemo(
+    () => highlightedIds
+      ? highlightedIds
+          .map((id) => filteredEvents.find((e) => e.id === id))
+          .filter((e): e is TimelineEvent => e != null)
+      : [],
+    [filteredEvents, highlightedIds]
+  );
+
   const selectedEvent = useMemo(
     () => filteredEvents.find((event) => event.id === selectedEventId) ?? null,
     [filteredEvents, selectedEventId]
@@ -197,10 +216,14 @@ export default function TimelineWorkspace() {
           events={filteredEvents}
           selectedEventId={selectedEventId}
           onSelectEvent={(eventId) => setSelectedEventId(eventId)}
+          focusDomain={focusDomain}
+          highlightedIds={highlightedSet}
         />
         <div className="timeline-bottom-row">
           <TimelineLegend events={filteredEvents} />
-          {selectedEvent && <EventDetailCard event={selectedEvent} />}
+          {highlightedEvents.length > 0
+            ? highlightedEvents.map((ev) => <EventDetailCard key={ev.id} event={ev} />)
+            : selectedEvent && <EventDetailCard event={selectedEvent} />}
         </div>
       </section>
     </TimelineSelectionContext.Provider>
