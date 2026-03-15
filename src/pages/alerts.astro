@@ -6,37 +6,196 @@ import { alerts as allAlerts, alertsSummary } from '../lib/alerts/data';
 const alerts = allAlerts.filter(a =>
   a.fireRegion === 'evia'
 );
+const eviaCount = alerts.length;
+const firstDate = alerts[0]?.timestamp?.slice(0, 10) ?? '';
+const lastDate = alerts[alerts.length - 1]?.timestamp?.slice(0, 10) ?? '';
 ---
 
 <BaseLayout
   title="112 Alerts | Evia Wildfire Timeline"
   description="Chronological replay of 112 emergency evacuation alerts during the August 2021 Greek wildfires."
 >
-  <section class="page-intro">
-    <p class="eyebrow">112 Emergency Alerts</p>
-    <h1>August 2021 evacuation orders</h1>
-    <p>
-      Chronological replay of {alertsSummary.totalAlerts} emergency alerts issued by @112Greece
-      during the August 2021 wildfire crisis. Alerts span {alertsSummary.dateRange.first.slice(0, 10)} to
-      {alertsSummary.dateRange.last.slice(0, 10)}, covering fires across Evia, Attica, Ilia, Messinia, and more.
-    </p>
-    <p style="font-family: var(--font-sans); font-size: 0.82rem; color: var(--color-muted); letter-spacing: 0.03em;">
-      Space: play/pause. Arrow keys: step between alerts. Home/End: jump to start/end.
-    </p>
-    <nav class="nav-links">
-      <a href="/reconstruction">Reconstruction module</a>
-      <a href="/timeline">Timeline workspace</a>
+  <div class="alerts-page">
+    <header class="alerts-header">
+      <div class="alerts-header__left">
+        <p class="alerts-header__eyebrow">112 Emergency Alerts &mdash; Evia, Northern Euboea</p>
+        <h1 class="alerts-header__title">Evacuation Orders</h1>
+        <p class="alerts-header__subtitle">August 2021</p>
+      </div>
+      <div class="alerts-header__right">
+        <div class="alerts-header__stat">
+          <span class="alerts-header__stat-value">{eviaCount}</span>
+          <span class="alerts-header__stat-label">alerts</span>
+        </div>
+        <div class="alerts-header__stat">
+          <span class="alerts-header__stat-value">{firstDate.slice(8)}&ndash;{lastDate.slice(8)}</span>
+          <span class="alerts-header__stat-label">Aug 2021</span>
+        </div>
+        <div class="alerts-header__meta">
+          <span class="alerts-header__key"><kbd>Space</kbd> play</span>
+          <span class="alerts-header__key"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> step</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="alerts-workspace">
+      <AlertsReplayModule client:load alerts={alerts} summary={alertsSummary} />
+    </div>
+
+    <nav class="alerts-nav">
+      <a href="/reconstruction">Reconstruction</a>
+      <a href="/timeline">Timeline</a>
       <a href="/">Home</a>
     </nav>
-  </section>
-
-  <div class="alerts-workspace">
-    <AlertsReplayModule client:load alerts={alerts} summary={alertsSummary} />
   </div>
 </BaseLayout>
 
 <style>
+  .alerts-page {
+    --alert-red: #c74949;
+    --alert-blue: #3a6fb5;
+    --alert-surface: #f7f8fb;
+  }
+
+  .alerts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    padding: clamp(1rem, 2vw, 1.6rem) 0;
+    border-bottom: 2px solid var(--color-text);
+    margin-bottom: 0;
+  }
+
+  .alerts-header__eyebrow {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--alert-red);
+    font-weight: 600;
+  }
+
+  .alerts-header__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.92;
+    color: var(--color-text);
+  }
+
+  .alerts-header__subtitle {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+    line-height: 1;
+  }
+
+  .alerts-header__right {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .alerts-header__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .alerts-header__stat-value {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--color-text);
+  }
+
+  .alerts-header__stat-label {
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-muted);
+    margin-top: 0.15rem;
+  }
+
+  .alerts-header__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--color-rule);
+  }
+
+  .alerts-header__key {
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+  }
+
+  .alerts-header__key kbd {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--color-rule);
+    border-radius: 2px;
+    padding: 0.05em 0.35em;
+    margin-right: 0.15em;
+    color: var(--color-text);
+    background: var(--color-surface-soft);
+  }
+
   .alerts-workspace {
-    margin-top: var(--space-4);
+    margin-top: 0;
+  }
+
+  .alerts-nav {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.2rem 0;
+    border-top: 1px solid var(--color-rule);
+    margin-top: 2rem;
+  }
+
+  .alerts-nav a {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+
+  .alerts-nav a:hover {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 640px) {
+    .alerts-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .alerts-header__right {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .alerts-header__meta {
+      border-left: none;
+      padding-left: 0;
+      flex-direction: row;
+      gap: 0.8rem;
+    }
   }
 </style>

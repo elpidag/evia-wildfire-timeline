@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { REGION_COLORS, REGION_LABELS } from '@/lib/alerts/constants';
 import type { ProcessedAlert } from '@/lib/alerts/schema';
 
 type AlertsAnalysisPanelProps = {
@@ -8,46 +7,46 @@ type AlertsAnalysisPanelProps = {
 
 // ── Shared styles ──
 
-const sectionHeaderStyle: React.CSSProperties = {
+const sectionHeader: React.CSSProperties = {
   fontFamily: 'var(--font-display)',
-  fontSize: '0.72rem',
+  fontSize: '0.7rem',
   textTransform: 'uppercase',
-  letterSpacing: '0.1em',
-  color: 'var(--color-muted, #5f6a93)',
-  paddingBottom: '6px',
-  borderTop: '1px solid var(--color-rule, #d4d9e5)',
-  paddingTop: '16px',
-  marginTop: '24px',
-  marginBottom: '12px',
+  letterSpacing: '0.12em',
+  color: 'var(--color-muted)',
+  paddingTop: 16,
+  paddingBottom: 8,
+  borderTop: '1px solid var(--color-rule)',
+  marginTop: 20,
 };
 
-const tableCellStyle: React.CSSProperties = {
+const cellBase: React.CSSProperties = {
   fontFamily: 'var(--font-sans)',
-  fontSize: '0.82rem',
-  padding: '4px 10px 4px 0',
+  fontSize: '0.78rem',
+  padding: '5px 12px 5px 0',
   verticalAlign: 'top',
-  lineHeight: 1.4,
-  borderBottom: '1px solid var(--color-rule, #d4d9e5)',
+  lineHeight: 1.45,
+  borderBottom: '1px solid var(--color-surface-muted)',
 };
 
-const tableHeaderCellStyle: React.CSSProperties = {
-  ...tableCellStyle,
+const headerCell: React.CSSProperties = {
+  ...cellBase,
   fontWeight: 600,
-  fontSize: '0.72rem',
+  fontSize: '0.62rem',
   textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  color: 'var(--color-muted, #5f6a93)',
-  borderBottom: '2px solid var(--color-rule, #d4d9e5)',
+  letterSpacing: '0.08em',
+  color: 'var(--color-muted)',
+  borderBottom: '1px solid var(--color-rule)',
+  paddingBottom: 6,
 };
 
-const numericCellStyle: React.CSSProperties = {
-  ...tableCellStyle,
+const numCell: React.CSSProperties = {
+  ...cellBase,
   textAlign: 'right',
   fontVariantNumeric: 'tabular-nums',
 };
 
-const numericHeaderStyle: React.CSSProperties = {
-  ...tableHeaderCellStyle,
+const numHeader: React.CSSProperties = {
+  ...headerCell,
   textAlign: 'right',
 };
 
@@ -64,7 +63,7 @@ function formatNumber(n: number): string {
 
 function truncateText(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
-  return text.slice(0, maxLen).trimEnd() + '...';
+  return text.slice(0, maxLen).trimEnd() + '\u2026';
 }
 
 // ── Section 1: Evacuation Network ──
@@ -81,19 +80,13 @@ function computeEvacuationNetwork(alerts: ProcessedAlert[]): EvacuationDestinati
   for (const alert of alerts) {
     if (alert.alertType !== 'evacuation') continue;
     if (alert.toLocations.length === 0) continue;
-
-    const fromNames = alert.fromLocations.map((loc) => loc.nameEn);
-
+    const fromNames = alert.fromLocations.map((l) => l.nameEn);
     for (const toLoc of alert.toLocations) {
       const key = toLoc.nameEn;
-      if (!destMap.has(key)) {
-        destMap.set(key, { count: 0, sources: new Set() });
-      }
+      if (!destMap.has(key)) destMap.set(key, { count: 0, sources: new Set() });
       const entry = destMap.get(key)!;
       entry.count += 1;
-      for (const name of fromNames) {
-        entry.sources.add(name);
-      }
+      for (const name of fromNames) entry.sources.add(name);
     }
   }
 
@@ -110,60 +103,27 @@ function computeEvacuationNetwork(alerts: ProcessedAlert[]): EvacuationDestinati
 function EvacuationNetworkSection({ alerts }: { alerts: ProcessedAlert[] }) {
   const destinations = useMemo(() => computeEvacuationNetwork(alerts), [alerts]);
 
-  if (destinations.length === 0) {
-    return (
-      <div>
-        <div style={sectionHeaderStyle}>Evacuation network</div>
-        <div
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '0.82rem',
-            color: 'var(--color-muted, #5f6a93)',
-          }}
-        >
-          No evacuation data available.
-        </div>
-      </div>
-    );
-  }
+  if (destinations.length === 0) return null;
 
   return (
     <div>
-      <div style={sectionHeaderStyle}>Evacuation network</div>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          tableLayout: 'auto',
-        }}
-      >
+      <div style={sectionHeader}>Evacuation network</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={tableHeaderCellStyle}>Destination</th>
-            <th style={numericHeaderStyle}>Count</th>
-            <th style={tableHeaderCellStyle}>Source villages</th>
+            <th style={headerCell}>Destination</th>
+            <th style={numHeader}>Count</th>
+            <th style={headerCell}>Evacuated from</th>
           </tr>
         </thead>
         <tbody>
           {destinations.map((dest) => (
             <tr key={dest.nameEn}>
-              <td
-                style={{
-                  ...tableCellStyle,
-                  fontWeight: 500,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <td style={{ ...cellBase, fontWeight: 500, whiteSpace: 'nowrap' }}>
                 {dest.nameEn}
               </td>
-              <td style={numericCellStyle}>{dest.count}</td>
-              <td
-                style={{
-                  ...tableCellStyle,
-                  color: 'var(--color-muted, #5f6a93)',
-                  fontSize: '0.78rem',
-                }}
-              >
+              <td style={numCell}>{dest.count}</td>
+              <td style={{ ...cellBase, color: 'var(--color-muted)', fontSize: '0.72rem' }}>
                 {dest.sourceVillages.join(', ')}
               </td>
             </tr>
@@ -174,140 +134,9 @@ function EvacuationNetworkSection({ alerts }: { alerts: ProcessedAlert[] }) {
   );
 }
 
-// ── Section 2: Multi-fire Comparison Table ──
+// ── Section 2: Engagement Summary ──
 
-type RegionRow = {
-  region: string;
-  label: string;
-  color: string;
-  dateFirst: string;
-  dateLast: string;
-  alertCount: number;
-  evacuationCount: number;
-  totalEngagement: number;
-};
-
-function computeRegionComparison(alerts: ProcessedAlert[]): RegionRow[] {
-  const regionMap = new Map<
-    string,
-    {
-      timestamps: number[];
-      alertCount: number;
-      evacuationCount: number;
-      totalEngagement: number;
-    }
-  >();
-
-  for (const alert of alerts) {
-    const region = alert.fireRegion;
-    if (!regionMap.has(region)) {
-      regionMap.set(region, {
-        timestamps: [],
-        alertCount: 0,
-        evacuationCount: 0,
-        totalEngagement: 0,
-      });
-    }
-    const entry = regionMap.get(region)!;
-    entry.timestamps.push(new Date(alert.timestamp).getTime());
-    entry.alertCount += 1;
-    if (alert.alertType === 'evacuation') {
-      entry.evacuationCount += 1;
-    }
-    entry.totalEngagement +=
-      alert.engagement.retweets + alert.engagement.likes;
-  }
-
-  return Array.from(regionMap.entries())
-    .map(([region, data]) => {
-      const sorted = data.timestamps.sort((a, b) => a - b);
-      return {
-        region,
-        label: REGION_LABELS[region] ?? region,
-        color: REGION_COLORS[region] ?? REGION_COLORS.other,
-        dateFirst: new Date(sorted[0]).toISOString(),
-        dateLast: new Date(sorted[sorted.length - 1]).toISOString(),
-        alertCount: data.alertCount,
-        evacuationCount: data.evacuationCount,
-        totalEngagement: data.totalEngagement,
-      };
-    })
-    .sort((a, b) => b.alertCount - a.alertCount);
-}
-
-function FireComparisonSection({ alerts }: { alerts: ProcessedAlert[] }) {
-  const rows = useMemo(() => computeRegionComparison(alerts), [alerts]);
-
-  if (rows.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <div style={sectionHeaderStyle}>Fire incidents comparison</div>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          tableLayout: 'auto',
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={tableHeaderCellStyle}>Region</th>
-            <th style={tableHeaderCellStyle}>Date range</th>
-            <th style={numericHeaderStyle}>Alerts</th>
-            <th style={numericHeaderStyle}>Evacuations</th>
-            <th style={numericHeaderStyle}>Engagement</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.region}>
-              <td
-                style={{
-                  ...tableCellStyle,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      backgroundColor: row.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  {row.label}
-                </span>
-              </td>
-              <td
-                style={{
-                  ...tableCellStyle,
-                  whiteSpace: 'nowrap',
-                  fontSize: '0.78rem',
-                  color: 'var(--color-muted, #5f6a93)',
-                }}
-              >
-                {formatDateShort(row.dateFirst)} &ndash; {formatDateShort(row.dateLast)}
-              </td>
-              <td style={numericCellStyle}>{formatNumber(row.alertCount)}</td>
-              <td style={numericCellStyle}>{formatNumber(row.evacuationCount)}</td>
-              <td style={numericCellStyle}>{formatNumber(row.totalEngagement)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ── Section 3: Engagement Summary ──
-
-function EngagementSummarySection({ alerts }: { alerts: ProcessedAlert[] }) {
+function EngagementSection({ alerts }: { alerts: ProcessedAlert[] }) {
   const stats = useMemo(() => {
     if (alerts.length === 0) return null;
 
@@ -316,81 +145,67 @@ function EngagementSummarySection({ alerts }: { alerts: ProcessedAlert[] }) {
     let maxRetweets = -1;
 
     for (const alert of alerts) {
-      const engagement = alert.engagement.retweets + alert.engagement.likes;
-      totalEngagement += engagement;
-
+      const eng = alert.engagement.retweets + alert.engagement.likes;
+      totalEngagement += eng;
       if (alert.engagement.retweets > maxRetweets) {
         maxRetweets = alert.engagement.retweets;
         mostRetweeted = alert;
       }
     }
 
-    const avgEngagement = totalEngagement / alerts.length;
-
     return {
       totalEngagement,
-      avgEngagement,
+      avgEngagement: totalEngagement / alerts.length,
       mostRetweeted,
       maxRetweets,
       totalAlerts: alerts.length,
     };
   }, [alerts]);
 
-  if (!stats || !stats.mostRetweeted) {
-    return null;
-  }
+  if (!stats || !stats.mostRetweeted) return null;
 
-  const { mostRetweeted, maxRetweets, totalEngagement, avgEngagement, totalAlerts } = stats;
-
-  const snippetStyle: React.CSSProperties = {
+  const metricStyle: React.CSSProperties = {
     fontFamily: 'var(--font-sans)',
-    fontSize: '0.82rem',
+    fontSize: '0.78rem',
     lineHeight: 1.6,
-    color: 'var(--color-text, #1f2f8f)',
-    margin: '0 0 6px 0',
+    color: 'var(--color-text)',
+    margin: '0 0 4px',
   };
 
   const labelStyle: React.CSSProperties = {
-    color: 'var(--color-muted, #5f6a93)',
-    fontSize: '0.78rem',
-  };
-
-  const valueStyle: React.CSSProperties = {
-    fontWeight: 600,
-    fontVariantNumeric: 'tabular-nums',
+    color: 'var(--color-muted)',
+    fontSize: '0.72rem',
   };
 
   return (
     <div>
-      <div style={sectionHeaderStyle}>Engagement summary</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <p style={snippetStyle}>
-          <span style={labelStyle}>Most retweeted alert: </span>
-          <span style={{ fontStyle: 'italic' }}>
-            &ldquo;{truncateText(mostRetweeted.text, 120)}&rdquo;
-          </span>
-          {' '}&mdash;{' '}
-          <span style={valueStyle}>{formatNumber(maxRetweets)} RTs</span>
-          {' '}
-          <span style={labelStyle}>
-            ({formatDateShort(mostRetweeted.timestamp)})
-          </span>
-        </p>
-        <p style={snippetStyle}>
-          <span style={labelStyle}>Total engagement: </span>
-          <span style={valueStyle}>{formatNumber(totalEngagement)}</span>
-          {' '}
-          <span style={labelStyle}>
-            across {formatNumber(totalAlerts)} alerts
-          </span>
-        </p>
-        <p style={snippetStyle}>
-          <span style={labelStyle}>Average engagement: </span>
-          <span style={valueStyle}>{Math.round(avgEngagement).toLocaleString('en-GB')}</span>
-          {' '}
-          <span style={labelStyle}>per alert</span>
-        </p>
+      <div style={sectionHeader}>Engagement</div>
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: 8 }}>
+        <div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', lineHeight: 1, color: 'var(--color-text)' }}>
+            {formatNumber(stats.totalEngagement)}
+          </div>
+          <div style={{ ...labelStyle, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>
+            Total engagement
+          </div>
+        </div>
+        <div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', lineHeight: 1, color: 'var(--color-text)' }}>
+            {Math.round(stats.avgEngagement).toLocaleString('en-GB')}
+          </div>
+          <div style={{ ...labelStyle, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>
+            Per alert average
+          </div>
+        </div>
       </div>
+      <p style={metricStyle}>
+        <span style={labelStyle}>Most retweeted: </span>
+        <em>&ldquo;{truncateText(stats.mostRetweeted.text, 100)}&rdquo;</em>
+        {' '}&mdash;{' '}
+        <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(stats.maxRetweets)} RT</strong>
+        {' '}
+        <span style={labelStyle}>({formatDateShort(stats.mostRetweeted.timestamp)})</span>
+      </p>
     </div>
   );
 }
@@ -399,10 +214,9 @@ function EngagementSummarySection({ alerts }: { alerts: ProcessedAlert[] }) {
 
 export default function AlertsAnalysisPanel({ alerts }: AlertsAnalysisPanelProps) {
   return (
-    <div style={{ paddingBottom: '32px' }}>
+    <div style={{ paddingBottom: 32 }}>
       <EvacuationNetworkSection alerts={alerts} />
-      <FireComparisonSection alerts={alerts} />
-      <EngagementSummarySection alerts={alerts} />
+      <EngagementSection alerts={alerts} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ import type {
 } from 'maplibre-gl';
 import type { ProcessedAlert } from '@/lib/alerts/schema';
 import { MAP_CENTER, MAP_ZOOM, REGION_COLORS } from '@/lib/alerts/constants';
-import { usePrefersReducedMotion } from '@/lib/utils/usePrefersReducedMotion';
+
 
 // ── Types ──
 
@@ -49,33 +49,34 @@ const ALL_LAYERS = [
 
 // ── Map styles ──
 
-const BASEMAP_SOURCES: Record<BasemapId, { tiles: string[]; attribution: string }> = {
-  osm: {
-    tiles: [
-      'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    ],
-    attribution: '&copy; OpenStreetMap contributors'
-  },
-  satellite: {
-    tiles: [
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-    ],
-    attribution: '&copy; Esri'
-  }
-};
-
-function buildStyle(basemap: BasemapId): StyleSpecification {
-  const src = BASEMAP_SOURCES[basemap];
-  return {
-    version: 8,
-    sources: {
-      base: { type: 'raster', tiles: src.tiles, tileSize: 256, attribution: src.attribution }
+/** Single style with both basemaps — switch via visibility toggle, no setStyle needed */
+const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors'
     },
-    layers: [{ id: 'base', type: 'raster', source: 'base', paint: {} }]
-  };
-}
+    satellite: {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256,
+      attribution: '&copy; Esri'
+    }
+  },
+  layers: [
+    { id: 'basemap-osm', type: 'raster', source: 'osm', paint: {}, layout: { visibility: 'visible' } },
+    { id: 'basemap-satellite', type: 'raster', source: 'satellite', paint: {}, layout: { visibility: 'none' } }
+  ]
+};
 
 // ── Region color match expression ──
 
@@ -118,46 +119,47 @@ function quadraticBezier(
   return points;
 }
 
-function arrowheadPolygon(
-  curvePoints: [number, number][],
-  sizeFactor = 0.08
-): [number, number][] | null {
+/** Compute bearing (degrees clockwise from north) at the end of a curve */
+function curveEndBearing(curvePoints: [number, number][]): number {
   const n = curvePoints.length;
-  if (n < 2) return null;
-
-  const tip = curvePoints[n - 1];
+  if (n < 2) return 0;
   const prev = curvePoints[n - 3] ?? curvePoints[n - 2];
-  const dx = tip[0] - prev[0];
-  const dy = tip[1] - prev[1];
-  const len = Math.sqrt(dx * dx + dy * dy);
+  const tip = curvePoints[n - 1];
+  // atan2(deltaLon, deltaLat) gives bearing from north
+  return (Math.atan2(tip[0] - prev[0], tip[1] - prev[1]) * 180) / Math.PI;
+}
 
-  if (len === 0) return null;
+const ARROWHEAD_ICON_OSM = 'arrowhead-osm';
+const ARROWHEAD_ICON_SAT = 'arrowhead-sat';
+const ARROWHEAD_SIZE = 24;
 
-  // Size proportional to the full edge length, clamped
-  const totalDx = curvePoints[n - 1][0] - curvePoints[0][0];
-  const totalDy = curvePoints[n - 1][1] - curvePoints[0][1];
-  const totalDist = Math.sqrt(totalDx * totalDx + totalDy * totalDy);
-  const size = Math.max(0.004, Math.min(0.018, totalDist * sizeFactor));
-
-  const ux = dx / len;
-  const uy = dy / len;
-  const bx = tip[0] - ux * size;
-  const by = tip[1] - uy * size;
-  const hw = size * 0.5;
-
-  return [
-    tip,
-    [bx + uy * hw, by - ux * hw],
-    [bx - uy * hw, by + ux * hw],
-    tip
-  ];
+/** Create arrowhead icon as ImageData for MapLibre addImage.
+ *  Triangle pointing up — tip at top center, base at bottom.
+ *  icon-rotate orients the tip in the bearing direction.
+ *  icon-anchor 'top' places the tip at the TO coordinate.
+ *  The TO marker circle renders on top, hiding the tip.
+ *  The triangle body extends backward, covering the dashed line end. */
+function createArrowheadImageData(color: string): { width: number; height: number; data: Uint8Array } {
+  const s = ARROWHEAD_SIZE;
+  const canvas = document.createElement('canvas');
+  canvas.width = s;
+  canvas.height = s;
+  const ctx = canvas.getContext('2d')!;
+  ctx.beginPath();
+  ctx.moveTo(s / 2, 0);              // tip — top center
+  ctx.lineTo(s * 0.85, s);           // base right
+  ctx.lineTo(s * 0.15, s);           // base left
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  const imageData = ctx.getImageData(0, 0, s, s);
+  return { width: s, height: s, data: new Uint8Array(imageData.data.buffer) };
 }
 
 // ── GeoJSON builders ──
 
 type PointFC = GeoJSON.FeatureCollection<GeoJSON.Point>;
 type LineFC = GeoJSON.FeatureCollection<GeoJSON.LineString>;
-type PolyFC = GeoJSON.FeatureCollection<GeoJSON.Polygon>;
 
 function buildPointsGeoJSON(alerts: ProcessedAlert[], maxIndex: number): PointFC {
   const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
@@ -236,24 +238,24 @@ function buildCurvesGeoJSON(alerts: ProcessedAlert[], maxIndex: number): LineFC 
   return { type: 'FeatureCollection', features };
 }
 
-function buildArrowheadsGeoJSON(alerts: ProcessedAlert[], maxIndex: number): PolyFC {
-  const features: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
+function buildArrowheadsGeoJSON(alerts: ProcessedAlert[], maxIndex: number): PointFC {
+  const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
 
   for (const alert of alerts) {
     if (alert.chronologicalIndex > maxIndex) continue;
 
     for (const edge of alert.evacuationEdges) {
       const curveCoords = quadraticBezier(edge.from, edge.to);
-      const head = arrowheadPolygon(curveCoords);
-      if (!head) continue;
+      const bearing = curveEndBearing(curveCoords);
 
       features.push({
         type: 'Feature',
         properties: {
           fireRegion: alert.fireRegion,
-          chronologicalIndex: alert.chronologicalIndex
+          chronologicalIndex: alert.chronologicalIndex,
+          bearing
         },
-        geometry: { type: 'Polygon', coordinates: [head] }
+        geometry: { type: 'Point', coordinates: edge.to }
       });
     }
   }
@@ -266,6 +268,21 @@ function buildArrowheadsGeoJSON(alerts: ProcessedAlert[], maxIndex: number): Pol
 const FROM_COLOR = '#c74949'; // red — danger/origin
 const TO_COLOR = '#3a6fb5';   // blue — safe destination
 const PAST_COLOR = '#aaaaaa'; // grey — past alerts
+const ARROW_COLOR_OSM = '#444444';   // dark grey on light basemap
+const ARROW_COLOR_SAT = '#ffffff';   // white on satellite
+
+/** Update arrow/line colors to match the current basemap */
+function applyArrowStyle(map: Map, basemap: BasemapId): void {
+  const color = basemap === 'satellite' ? ARROW_COLOR_SAT : ARROW_COLOR_OSM;
+  const icon = basemap === 'satellite' ? ARROWHEAD_ICON_SAT : ARROWHEAD_ICON_OSM;
+
+  if (map.getLayer(ACTIVE_CURVES_LAYER)) {
+    map.setPaintProperty(ACTIVE_CURVES_LAYER, 'line-color', color);
+  }
+  if (map.getLayer(ACTIVE_ARROWS_LAYER)) {
+    map.setLayoutProperty(ACTIVE_ARROWS_LAYER, 'icon-image', icon);
+  }
+}
 
 // ── Map layer setup ──
 
@@ -303,7 +320,7 @@ function ensureLayers(map: Map): void {
 
   // ── Active layers ──
 
-  // Dashed curved lines (blue)
+  // Dashed curved lines (white)
   if (!map.getLayer(ACTIVE_CURVES_LAYER))
     map.addLayer({
       id: ACTIVE_CURVES_LAYER,
@@ -311,27 +328,35 @@ function ensureLayers(map: Map): void {
       source: EVAC_CURVES_SOURCE,
       filter: ACTIVE_FILTER,
       paint: {
-        'line-color': TO_COLOR,
-        'line-width': 2,
-        'line-opacity': 0.7,
+        'line-color': ARROW_COLOR_OSM,
+        'line-width': 3,
+        'line-opacity': 0.85,
         'line-dasharray': [2, 2]
       }
     });
 
-  // Arrowheads (blue, filled)
+  // Arrowheads (white triangle icons, fixed pixel size)
   if (!map.getLayer(ACTIVE_ARROWS_LAYER))
     map.addLayer({
       id: ACTIVE_ARROWS_LAYER,
-      type: 'fill',
+      type: 'symbol',
       source: EVAC_ARROWS_SOURCE,
       filter: ACTIVE_FILTER,
+      layout: {
+        'icon-image': ARROWHEAD_ICON_OSM,
+        'icon-size': 0.6,
+        'icon-rotate': ['get', 'bearing'],
+        'icon-rotation-alignment': 'map',
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'icon-anchor': 'top',
+      },
       paint: {
-        'fill-color': TO_COLOR,
-        'fill-opacity': 0.8
+        'icon-opacity': 0.9
       }
     });
 
-  // FROM markers (red filled circles)
+  // FROM markers (red filled circles, no stroke)
   if (!map.getLayer(ACTIVE_FROM_LAYER))
     map.addLayer({
       id: ACTIVE_FROM_LAYER,
@@ -339,14 +364,12 @@ function ensureLayers(map: Map): void {
       source: EVAC_POINTS_SOURCE,
       filter: ['all', ACTIVE_FILTER, ['==', ['get', 'role'], 'from']],
       paint: {
-        'circle-radius': 6,
-        'circle-color': FROM_COLOR,
-        'circle-stroke-width': 1.5,
-        'circle-stroke-color': '#ffffff'
+        'circle-radius': 8,
+        'circle-color': FROM_COLOR
       }
     });
 
-  // TO markers (blue filled circles)
+  // TO markers (blue filled circles, no stroke)
   if (!map.getLayer(ACTIVE_TO_LAYER))
     map.addLayer({
       id: ACTIVE_TO_LAYER,
@@ -354,10 +377,8 @@ function ensureLayers(map: Map): void {
       source: EVAC_POINTS_SOURCE,
       filter: ['all', ACTIVE_FILTER, ['==', ['get', 'role'], 'to']],
       paint: {
-        'circle-radius': 6,
-        'circle-color': TO_COLOR,
-        'circle-stroke-width': 1.5,
-        'circle-stroke-color': '#ffffff'
+        'circle-radius': 8,
+        'circle-color': TO_COLOR
       }
     });
 }
@@ -416,7 +437,6 @@ export default function AlertsMap({
   const [mapError, setMapError] = useState<string | null>(null);
   const [basemap, setBasemap] = useState<BasemapId>('osm');
 
-  const prefersReducedMotion = usePrefersReducedMotion();
 
   const onSelectAlertRef = useRef(onSelectAlert);
   onSelectAlertRef.current = onSelectAlert;
@@ -440,37 +460,24 @@ export default function AlertsMap({
       try {
         const map = new maplibregl.Map({
           container,
-          style: buildStyle('osm'),
+          style: MAP_STYLE,
           center: MAP_CENTER,
           zoom: MAP_ZOOM,
-          attributionControl: false
+          attributionControl: false,
+          keyboard: false
         });
 
         map.addControl(new maplibregl.AttributionControl({ compact: true }));
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
         map.on('load', () => {
+          if (!map.hasImage(ARROWHEAD_ICON_OSM)) {
+            map.addImage(ARROWHEAD_ICON_OSM, createArrowheadImageData(ARROW_COLOR_OSM));
+            map.addImage(ARROWHEAD_ICON_SAT, createArrowheadImageData(ARROW_COLOR_SAT));
+          }
           ensureLayers(map);
           updateSourceData(map, alertsRef.current, currentIndex);
           isReadyRef.current = true;
-
-          // Fit viewport to all evacuation points
-          const bounds = new maplibregl.LngLatBounds();
-          let hasPoints = false;
-          for (const a of alertsRef.current) {
-            for (const edge of a.evacuationEdges) {
-              bounds.extend(edge.from as [number, number]);
-              bounds.extend(edge.to as [number, number]);
-              hasPoints = true;
-            }
-            if (a.evacuationEdges.length === 0 && a.centroid) {
-              bounds.extend(a.centroid as [number, number]);
-              hasPoints = true;
-            }
-          }
-          if (hasPoints) {
-            map.fitBounds(bounds, { padding: 40, maxZoom: 10 });
-          }
         });
 
         map.on('error', (event) => {
@@ -517,16 +524,14 @@ export default function AlertsMap({
     };
   }, []);
 
-  // ── Switch basemap ──
+  // ── Switch basemap (visibility toggle, no setStyle) ──
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !isReadyRef.current) return;
 
-    map.setStyle(buildStyle(basemap));
-    map.once('style.load', () => {
-      ensureLayers(map);
-      updateSourceData(map, alertsRef.current, currentIndexRef.current);
-    });
+    map.setLayoutProperty('basemap-osm', 'visibility', basemap === 'osm' ? 'visible' : 'none');
+    map.setLayoutProperty('basemap-satellite', 'visibility', basemap === 'satellite' ? 'visible' : 'none');
+    applyArrowStyle(map, basemap);
   }, [basemap]);
 
   // ── Update data on currentIndex change ──
@@ -537,26 +542,6 @@ export default function AlertsMap({
     updateSourceData(map, alerts, currentIndex);
   }, [alerts, currentIndex]);
 
-  // ── Fly to selected alert ──
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !isReadyRef.current) return;
-
-    if (!selectedAlert) return;
-
-    // Fly to the first FROM location, or centroid as fallback
-    const target: [number, number] | null =
-      selectedAlert.evacuationEdges[0]?.from ??
-      selectedAlert.centroid;
-
-    if (!target) return;
-
-    if (prefersReducedMotion) {
-      map.jumpTo({ center: target, zoom: Math.max(map.getZoom(), 9) });
-    } else {
-      map.flyTo({ center: target, zoom: Math.max(map.getZoom(), 9), duration: 600 });
-    }
-  }, [selectedAlert, prefersReducedMotion]);
 
   // ── Render ──
   if (mapError) {

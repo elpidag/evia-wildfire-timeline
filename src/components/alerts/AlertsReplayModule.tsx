@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProcessedAlert, AlertsSummary } from '@/lib/alerts/schema';
 import type { PlaybackSpeed } from '@/lib/alerts/constants';
-import { BASE_SECONDS_PER_HOUR, PLAYBACK_SPEEDS, TIMELINE_START } from '@/lib/alerts/constants';
+import { PLAYBACK_SPEEDS, TIMELINE_START } from '@/lib/alerts/constants';
 import AlertsMap from './AlertsMap';
 import AlertsTimeline from './AlertsTimeline';
 import AlertDetailCard from './AlertDetailCard';
@@ -20,8 +20,6 @@ export default function AlertsReplayModule({ alerts, summary }: AlertsReplayModu
   const [selectedAlert, setSelectedAlert] = useState<ProcessedAlert | null>(null);
   const [regionFilter, setRegionFilter] = useState<string>('all');
 
-  const animationRef = useRef<number | null>(null);
-  const lastFrameRef = useRef<number>(0);
   const urlUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Read initial time from URL on mount (client-only, avoids hydration mismatch)
@@ -61,60 +59,46 @@ export default function AlertsReplayModule({ alerts, summary }: AlertsReplayModu
   const filteredAlerts =
     regionFilter === 'all' ? alerts : alerts.filter((a) => a.fireRegion === regionFilter);
 
-  // Playback loop
+  // Playback: step through alerts, 1 second per alert
+  const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const playIndexRef = useRef(resolvedArrayIndex);
+
   useEffect(() => {
     if (!isPlaying) {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
+      if (playIntervalRef.current !== null) {
+        clearInterval(playIntervalRef.current);
+        playIntervalRef.current = null;
       }
       return;
     }
 
-    lastFrameRef.current = performance.now();
+    // Start from the current position
+    playIndexRef.current = resolvedArrayIndex;
 
-    const tick = (now: number) => {
-      const delta = (now - lastFrameRef.current) / 1000; // seconds elapsed
-      lastFrameRef.current = now;
-
-      // Advance simulated time: delta seconds * speed * hours_per_second → ms
-      const msToAdvance = delta * playbackSpeed * (3600 * 1000) / BASE_SECONDS_PER_HOUR;
-
-      setCurrentTime((prev) => {
-        const next = new Date(prev.getTime() + msToAdvance);
-        const lastAlertTime = new Date(alerts[alerts.length - 1].timestamp).getTime();
-
-        if (next.getTime() > lastAlertTime + 60000) {
-          setIsPlaying(false);
-          return new Date(lastAlertTime);
-        }
-        return next;
-      });
-
-      animationRef.current = requestAnimationFrame(tick);
+    // Step to next alert immediately, then every 1 second
+    const step = () => {
+      const nextIdx = playIndexRef.current + 1;
+      if (nextIdx >= alerts.length) {
+        setIsPlaying(false);
+        return;
+      }
+      playIndexRef.current = nextIdx;
+      const nextAlert = alerts[nextIdx];
+      setCurrentTime(new Date(nextAlert.timestamp));
+      setSelectedAlert(nextAlert);
     };
 
-    animationRef.current = requestAnimationFrame(tick);
+    step(); // first step immediately
+    const intervalMs = 1000 / playbackSpeed;
+    playIntervalRef.current = setInterval(step, intervalMs);
 
     return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
+      if (playIntervalRef.current !== null) {
+        clearInterval(playIntervalRef.current);
+        playIntervalRef.current = null;
       }
     };
   }, [isPlaying, playbackSpeed, alerts]);
-
-  // Auto-select alert when playback crosses an alert timestamp
-  const prevArrayIdxRef = useRef(resolvedArrayIndex);
-  useEffect(() => {
-    if (isPlaying && resolvedArrayIndex !== prevArrayIdxRef.current && resolvedArrayIndex >= 0) {
-      const alert = alerts[resolvedArrayIndex];
-      if (alert) {
-        setSelectedAlert(alert);
-      }
-    }
-    prevArrayIdxRef.current = resolvedArrayIndex;
-  }, [resolvedArrayIndex, isPlaying, alerts]);
 
   const handlePlayPause = useCallback(() => {
     setIsPlaying((prev) => !prev);
@@ -195,100 +179,73 @@ export default function AlertsReplayModule({ alerts, summary }: AlertsReplayModu
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [alerts, resolvedArrayIndex, handlePlayPause]);
 
-  // Available regions for filter dropdown
   const availableRegions = Array.from(new Set(alerts.map((a) => a.fireRegion))).sort();
 
+  // Alert counter display
+  const alertCounter = resolvedArrayIndex >= 0
+    ? `${resolvedArrayIndex + 1} / ${alerts.length}`
+    : `0 / ${alerts.length}`;
+
   return (
-    <div>
-      {/* Map + timeline area */}
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 16rem)', minHeight: '32rem' }}>
-      {/* Region filter + summary stats */}
+    <div style={{ fontFamily: 'var(--font-sans)' }}>
+      {/* ── Map + Timeline block ── */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '8px 0',
-          gap: '16px',
-          flexWrap: 'wrap'
+          flexDirection: 'column',
+          height: 'calc(100vh - 12rem)',
+          minHeight: '28rem',
+          borderTop: '1px solid var(--color-rule)',
         }}
       >
-        <div
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '0.72rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--color-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}
-        >
-          <span>Region:</span>
-          <select
-            value={regionFilter}
-            onChange={(e) => setRegionFilter(e.target.value)}
+        {/* Map container */}
+        <div style={{ position: 'relative', flex: 1, minHeight: '300px' }}>
+          <AlertsMap
+            alerts={filteredAlerts}
+            currentIndex={resolvedChronoIndex}
+            selectedAlert={selectedAlert}
+            onSelectAlert={handleSelectAlert}
+          />
+
+          {/* Alert counter overlay — top left, below basemap toggle */}
+          <div
             style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '0.76rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              border: '1px solid var(--color-rule)',
-              background: 'var(--color-surface)',
-              color: 'var(--color-text)',
-              padding: '2px 6px',
-              cursor: 'pointer'
+              position: 'absolute',
+              top: 58,
+              left: 8,
+              background: 'rgba(31, 47, 143, 0.88)',
+              color: '#fff',
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.8rem',
+              letterSpacing: '0.08em',
+              padding: '3px 10px',
+              borderRadius: '2px',
+              zIndex: 1,
             }}
           >
-            <option value="all">All regions ({summary.totalAlerts})</option>
-            {availableRegions.map((region) => (
-              <option key={region} value={region}>
-                {region.replace(/_/g, ' ')} ({summary.countByRegion[region] ?? 0})
-              </option>
-            ))}
-          </select>
-        </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '0.72rem',
-            letterSpacing: '0.04em',
-            color: 'var(--color-muted)'
-          }}
-        >
-          Peak: {summary.peakDay} ({summary.peakDayCount} alerts) | Geocoded:{' '}
-          {summary.geocodedAlertCount}/{summary.totalAlerts}
-        </div>
-      </div>
+            {alertCounter}
+          </div>
 
-      {/* Map container */}
-      <div style={{ position: 'relative', flex: 1, minHeight: '400px', border: '1px solid var(--color-rule)' }}>
-        <AlertsMap
+          <AlertDetailCard alert={selectedAlert} onClose={handleCloseDetail} />
+        </div>
+
+        {/* Timeline scrubber */}
+        <AlertsTimeline
           alerts={filteredAlerts}
-          currentIndex={resolvedChronoIndex}
-          selectedAlert={selectedAlert}
-          onSelectAlert={handleSelectAlert}
+          currentTime={currentTime}
+          isPlaying={isPlaying}
+          playbackSpeed={playbackSpeed}
+          onTimeChange={handleTimeChange}
+          onPlayPause={handlePlayPause}
+          onSpeedChange={handleSpeedChange}
         />
-        <AlertDetailCard alert={selectedAlert} onClose={handleCloseDetail} />
       </div>
 
-      {/* Timeline scrubber */}
-      <AlertsTimeline
-        alerts={filteredAlerts}
-        currentTime={currentTime}
-        isPlaying={isPlaying}
-        playbackSpeed={playbackSpeed}
-        onTimeChange={handleTimeChange}
-        onPlayPause={handlePlayPause}
-        onSpeedChange={handleSpeedChange}
-      />
-
+      {/* ── Analysis sections ── */}
+      <div style={{ marginTop: '2rem' }}>
+        <AlertsFrequencyChart alerts={filteredAlerts} />
+        <AlertsAnalysisPanel alerts={filteredAlerts} />
       </div>
-
-      {/* OSINT analysis (scrollable below the map) */}
-      <AlertsFrequencyChart alerts={filteredAlerts} />
-      <AlertsAnalysisPanel alerts={filteredAlerts} />
     </div>
   );
 }

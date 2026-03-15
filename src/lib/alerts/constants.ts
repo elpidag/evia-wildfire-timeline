@@ -41,8 +41,8 @@ export const ALERT_TYPE_LABELS: Record<string, string> = {
 };
 
 /** Map initial viewport: centered on the Evia/Attica area */
-export const MAP_CENTER: [number, number] = [23.5, 38.4];
-export const MAP_ZOOM = 7.5;
+export const MAP_CENTER: [number, number] = [23.55, 38.73];
+export const MAP_ZOOM = 9.1;
 
 /** Playback constants */
 export const PLAYBACK_SPEEDS = [1, 2, 5, 10] as const;
