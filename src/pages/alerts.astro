@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AlertsReplayModule from '../components/alerts/AlertsReplayModule';
+import { alerts } from '../lib/alerts/data';
+---
+
+<BaseLayout
+  title="112 Alerts | Evia Wildfire Timeline"
+  description="Chronological replay of 112 emergency evacuation alerts during the August 2021 Greek wildfires."
+>
+  <div class="alerts-page">
+    <header class="alerts-header">
+      <div class="alerts-header__left">
+        <p class="alerts-header__eyebrow">112 Emergency Alerts</p>
+        <h1 class="alerts-header__title">Evacuation Orders</h1>
+        <p class="alerts-header__subtitle">August 2021</p>
+      </div>
+    </header>
+
+    <div class="alerts-workspace">
+      <AlertsReplayModule client:load alerts={alerts} />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .alerts-page {
+    --alert-red: #c74949;
+    --alert-blue: #3a6fb5;
+  }
+
+  .alerts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    padding: clamp(1rem, 2vw, 1.6rem) 0;
+    border-bottom: 2px solid var(--color-text);
+    margin-bottom: 0;
+  }
+
+  .alerts-header__eyebrow {
+    margin: 0 0 0.3rem;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--alert-red);
+    font-weight: 600;
+  }
+
+  .alerts-header__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.92;
+    color: var(--color-text);
+  }
+
+  .alerts-header__subtitle {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-muted);
+    line-height: 1;
+  }
+
+  .alerts-workspace {
+    margin-top: 0;
+  }
+
+  @media (max-width: 640px) {
+    .alerts-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

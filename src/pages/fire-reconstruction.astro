@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EviaFireMap from '../components/fire-reconstruction/EviaFireMap';
+---
+
+<BaseLayout
+  title="Fire Reconstruction | Evia Wildfire Timeline"
+  description="Research-grade interactive map of the August 2021 Evia wildfire showing active-fire satellite detections and daily satellite imagery."
+>
+  <div class="fire-page">
+    <header class="fire-header">
+      <div class="fire-header__left">
+        <p class="fire-header__eyebrow">Satellite Fire Reconstruction</p>
+        <h1 class="fire-header__title">Evia 2021</h1>
+        <p class="fire-header__subtitle">Active-fire detections &amp; daily imagery &mdash; 3&ndash;14 August</p>
+      </div>
+      <nav class="fire-header__nav">
+        <a href="/alerts">112 Alerts</a>
+        <a href="/reconstruction">Reconstruction</a>
+        <a href="/">Home</a>
+      </nav>
+    </header>
+
+    <div class="fire-workspace">
+      <EviaFireMap client:load />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .fire-page {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 6rem);
+  }
+
+  .fire-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    padding: clamp(0.8rem, 1.5vw, 1.2rem) 0;
+    border-bottom: 2px solid var(--color-text);
+  }
+
+  .fire-header__eyebrow {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #c74949;
+    font-weight: 600;
+  }
+
+  .fire-header__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.92;
+  }
+
+  .fire-header__subtitle {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .fire-header__nav {
+    display: flex;
+    gap: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .fire-header__nav a {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    text-decoration: none;
+  }
+
+  .fire-header__nav a:hover {
+    color: var(--color-text);
+  }
+
+  .fire-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 10rem);
+    min-height: 500px;
+  }
+
+  @media (max-width: 640px) {
+    .fire-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

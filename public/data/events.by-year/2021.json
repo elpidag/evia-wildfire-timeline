@@ -10,7 +10,7 @@
     "summary": "Main active wildfire period affecting multiple settlements in Northern Evia.",
     "category": "wildfire",
     "actors": [
-      "actor-hellenic-fire-service"
+      "actor-greek-government"
     ],
     "places": [
       "place-north-evia"
@@ -79,9 +79,9 @@
     "sortKey": "1627776000000-evia-2021-wildfire-front-duration",
     "actorLabels": [
       {
-        "id": "actor-hellenic-fire-service",
-        "name": "Hellenic Fire Service",
-        "slug": "hellenic-fire-service"
+        "id": "actor-greek-government",
+        "name": "Hellenic Government",
+        "slug": "greek-government"
       }
     ],
     "placeLabels": [

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gazetteer Verification Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; height: 100vh; }
+  #map { flex: 1; }
+  #sidebar {
+    width: 360px; overflow-y: auto; background: #f8f8f8; border-left: 1px solid #ddd;
+    font-size: 13px; padding: 12px;
+  }
+  #sidebar h2 { font-size: 15px; margin-bottom: 8px; }
+  #sidebar h3 { font-size: 13px; margin: 12px 0 4px; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+  .entry { padding: 4px 6px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .entry:hover { background: #e8f0fe; }
+  .entry .tag { font-weight: 600; }
+  .entry .name-en { color: #555; }
+  .entry .region-badge {
+    font-size: 10px; padding: 1px 5px; border-radius: 3px; color: #fff; white-space: nowrap;
+  }
+  .null-entries { margin-top: 16px; }
+  .null-entries .entry { color: #999; cursor: default; }
+  .stats { margin-bottom: 12px; color: #666; font-size: 12px; }
+  .filter-row { margin-bottom: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-btn {
+    font-size: 10px; padding: 2px 8px; border: 1px solid #ccc; border-radius: 3px;
+    background: #fff; cursor: pointer;
+  }
+  .filter-btn.active { background: #333; color: #fff; border-color: #333; }
+  .leaflet-popup-content { font-family: inherit; font-size: 13px; line-height: 1.5; }
+  .popup-tag { font-size: 16px; font-weight: 700; }
+  .popup-name { color: #555; }
+  .popup-coords { font-size: 11px; color: #888; font-family: monospace; }
+  .popup-link { display: inline-block; margin-top: 4px; font-size: 12px; }
+  .search-box {
+    width: 100%; padding: 6px 8px; margin-bottom: 8px; border: 1px solid #ccc;
+    border-radius: 4px; font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="sidebar">
+  <h2>Gazetteer Verification</h2>
+  <div class="stats" id="stats"></div>
+  <input type="text" class="search-box" id="search" placeholder="Search by Greek or English name...">
+  <div class="filter-row" id="filters"></div>
+  <div id="entries"></div>
+  <div class="null-entries">
+    <h3>No coordinates (fragments/regions)</h3>
+    <div id="null-entries"></div>
+  </div>
+</div>
+
+<script>
+const GAZETTEER = {"Αφάντου":{"lat":36.293875,"lon":28.162187,"nameEn":"Afandou","region":"rhodes"},"Ψίνθο":{"lat":36.314566,"lon":28.095778,"nameEn":"Psinthos","region":"rhodes"},"Μαριτσά":{"lat":36.360775,"lon":28.117281,"nameEn":"Maritsa","region":"rhodes"},"Καλυθιές":{"lat":36.335893,"lon":28.174439,"nameEn":"Kalythies","region":"rhodes"},"Ρόδο":{"lat":36.17253,"lon":27.919402,"nameEn":"Rhodes","region":"rhodes"},"Ρόδου":{"lat":36.17253,"lon":27.919402,"nameEn":"Rhodes","region":"rhodes"},"Βασιλίτσι":{"lat":36.764522,"lon":21.90883,"nameEn":"Vasilitsi","region":"messinia"},"Κορώνη":{"lat":36.795,"lon":21.958,"nameEn":"Koroni","region":"messinia"},"Λειβαδάκια":{"lat":36.779608,"lon":21.925823,"nameEn":"Leivadakia","region":"messinia"},"Δεσύλλα":{"lat":37.167,"lon":21.958,"nameEn":"Desylla","region":"messinia"},"Καρνάσι":{"lat":37.147,"lon":21.952,"nameEn":"Karnasi","region":"messinia"},"Παραπούγκι":{"lat":37.305443,"lon":21.98712,"nameEn":"Parapoungki","region":"messinia"},"ΆγιοςΓεώργιος":{"lat":37.311582,"lon":21.846191,"nameEn":"Agios Georgios","region":"messinia"},"Κεντρικό":{"lat":37.278159,"lon":21.970811,"nameEn":"Kentriko","region":"messinia"},"Ζευγολατειό":{"lat":37.145,"lon":21.895,"nameEn":"Zevgolateio","region":"messinia"},"Διαβολίτσι":{"lat":37.299835,"lon":21.968966,"nameEn":"Diavolitsi","region":"messinia"},"Άνω_Κάτω_Μέλπεια":{"lat":37.307524,"lon":21.902605,"nameEn":"Ano Kato Melpeia","region":"messinia"},"Βαρυμπόμπη":{"lat":38.129999,"lon":23.789367,"nameEn":"Varympompi","region":"attica_north"},"Βαρυμπόμπης":{"lat":38.129999,"lon":23.789367,"nameEn":"Varympompi","region":"attica_north"},"Θρακομακεδόνες":{"lat":38.129447,"lon":23.757369,"nameEn":"Thrakomakedones","region":"attica_north"},"Αδάμες":{"lat":38.099087,"lon":23.790995,"nameEn":"Adames","region":"attica_north"},"Αχαρνές":{"lat":38.080218,"lon":23.743629,"nameEn":"Acharnes","region":"attica_north"},"Ολυμπιακό_Χωριό":{"lat":38.109386,"lon":23.768163,"nameEn":"Olympic Village","region":"attica_north"},"Κρυονέρι":{"lat":38.140447,"lon":23.832835,"nameEn":"Kryoneri","region":"attica_north"},"Κρυονερίου":{"lat":38.140447,"lon":23.832835,"nameEn":"Kryoneri","region":"attica_north"},"Δροσοπηγή":{"lat":38.168321,"lon":23.829347,"nameEn":"Drosopigi","region":"attica_north"},"Ιπποκράτειο_Πολιτεία":{"lat":38.202969,"lon":23.803842,"nameEn":"Ippokrateio Politeia","region":"attica_north"},"Αφίδνες":{"lat":38.203,"lon":23.838,"nameEn":"Afidnes","region":"attica_north"},"Κοκκινόβραχος":{"lat":37.97649,"lon":23.6126,"nameEn":"Kokkinovrachos","region":"attica_north"},"Σταμάτας":{"lat":38.126384,"lon":23.871251,"nameEn":"Stamata","region":"attica_north"},"Ροδόπολης":{"lat":38.116697,"lon":23.875852,"nameEn":"Rodopoli","region":"attica_north"},"Πολυδένδρι":{"lat":38.216374,"lon":23.867864,"nameEn":"Polydendri","region":"attica_north"},"Βαρνάβα":{"lat":38.223812,"lon":23.92252,"nameEn":"Varnava","region":"attica_north"},"Μίλεσι":{"lat":38.273346,"lon":23.806016,"nameEn":"Milesi","region":"attica_north"},"Καπανδρίτι":{"lat":38.215872,"lon":23.877193,"nameEn":"Kapandriti","region":"attica_north"},"Μαλακάσα":{"lat":38.238815,"lon":23.796004,"nameEn":"Malakasa","region":"attica_north"},"Σφενδάλη":{"lat":38.235496,"lon":23.78474,"nameEn":"Sfendali","region":"attica_north"},"Μαρκόπουλο_Ωρωπού":{"lat":38.289859,"lon":23.823737,"nameEn":"Markopoulo Oropou","region":"attica_north"},"Ωρωπό":{"lat":38.305,"lon":23.752,"nameEn":"Oropos","region":"attica_north"},"Κάλαμο":{"lat":38.269,"lon":23.857,"nameEn":"Kalamo","region":"attica_north"},"Κηφισίας":{"lat":38.038394,"lon":23.800739,"nameEn":"Kifissia","region":"attica_north"},"Πουρίθι":{"lat":38.208493,"lon":23.90697,"nameEn":"Pourithi","region":"attica_north"},"Ταξιάρχες":{"lat":38.202124,"lon":23.856103,"nameEn":"Taxiarches","region":"attica_north"},"Μαραθώνα":{"lat":38.153175,"lon":23.961258,"nameEn":"Marathon","region":"attica_north"},"Βόθωνα":{"lat":38.175905,"lon":23.92216,"nameEn":"Vothona","region":"attica_north"},"Νέα_Μάκρη":{"lat":38.083049,"lon":23.97907,"nameEn":"Nea Makri","region":"attica_north"},"Ανοίξεως":{"lat":37.971858,"lon":23.862604,"nameEn":"Anoixi","region":"attica_north"},"Πευκόφυτο":{"lat":38.15431,"lon":23.867663,"nameEn":"Pefkofyto","region":"attica_north"},"Πευκόφυτου":{"lat":38.15431,"lon":23.867663,"nameEn":"Pefkofyto","region":"attica_north"},"Αγίου_Στεφάνου":{"lat":38.141904,"lon":23.858815,"nameEn":"Agios Stefanos","region":"attica_north"},"Αθήνα":{"lat":37.975,"lon":23.735,"nameEn":"Athens","region":"attica_north"},"Άθήνα":{"lat":37.975,"lon":23.735,"nameEn":"Athens","region":"attica_north"},"Κύμης":{"lat":38.080218,"lon":23.743629,"nameEn":"Kymi Ave","region":"attica_north"},"Ποντίων":{"lat":38.149226,"lon":23.856914,"nameEn":"Pontion","region":"attica_north"},"Άγιο_Γεώργιο":{"lat":38.127406,"lon":23.332324,"nameEn":"Agios Georgios","region":"attica_west"},"Δροσιά":{"lat":38.109001,"lon":23.861361,"nameEn":"Drosia","region":"attica_north"},"Βίλια":{"lat":38.167976,"lon":23.337193,"nameEn":"Vilia","region":"attica_west"},"Βίλλια":{"lat":38.167976,"lon":23.337193,"nameEn":"Vilia","region":"attica_west"},"Προφήτη_Ηλία_Βιλίων":{"lat":38.17,"lon":23.34,"nameEn":"Profitis Ilias Vilion","region":"attica_west"},"Μάνδρα":{"lat":38.07479,"lon":23.496952,"nameEn":"Mandra","region":"attica_west"},"Μάνδρα_Αττικής":{"lat":38.07479,"lon":23.496952,"nameEn":"Mandra","region":"attica_west"},"Ψάθα":{"lat":38.112583,"lon":23.219878,"nameEn":"Psatha","region":"attica_west"},"Αλεποχώρι":{"lat":38.087247,"lon":23.186895,"nameEn":"Alepochori","region":"attica_west"},"Μέγαρα":{"lat":37.994,"lon":23.348,"nameEn":"Megara","region":"attica_west"},"Βενίζα":{"lat":38.08302,"lon":23.255555,"nameEn":"Veniza","region":"attica_west"},"ΑγίαΠαρασκευή":{"lat":38.144088,"lon":23.273785,"nameEn":"Agia Paraskevi","region":"attica_west"},"Βαθυχώρι":{"lat":38.115031,"lon":23.26222,"nameEn":"Vathychori","region":"attica_west"},"ΚρύοΠηγάδι":{"lat":38.143538,"lon":23.293611,"nameEn":"Kryo Pigadi","region":"attica_west"},"Δηλίζα":{"lat":38.163,"lon":23.346,"nameEn":"Diliza","region":"attica_west"},"Καμμένα":{"lat":38.16,"lon":23.355,"nameEn":"Kammena","region":"attica_west"},"Πεύκες":{"lat":38.118801,"lon":23.41213,"nameEn":"Pefkes","region":"attica_west"},"Λινάρια":{"lat":38.155,"lon":23.335,"nameEn":"Linaria","region":"attica_west"},"ΆσπραΣπίτια":{"lat":38.162,"lon":23.342,"nameEn":"Aspra Spitia","region":"attica_west"},"Ερυθραίας":{"lat":38.103154,"lon":23.815524,"nameEn":"Erythres","region":"attica_west"},"Μορτερού":{"lat":38.21,"lon":23.425,"nameEn":"Morterou","region":"attica_west"},"Μουριά":{"lat":37.985805,"lon":23.738746,"nameEn":"Mouria","region":"attica_west"},"Λάλα":{"lat":37.79927,"lon":21.35236,"nameEn":"Lala","region":"ilia"},"Αρχαία_Ολυμπία":{"lat":37.644143,"lon":21.625277,"nameEn":"Ancient Olympia","region":"ilia"},"Νεμούτα":{"lat":37.700741,"lon":21.79184,"nameEn":"Nemouta","region":"ilia"},"Πύργο":{"lat":38.03233,"lon":21.364142,"nameEn":"Pyrgos","region":"ilia"},"Πελόπιο":{"lat":37.676605,"lon":21.592175,"nameEn":"Pelopio","region":"ilia"},"Κλαδέο":{"lat":37.666486,"lon":21.634863,"nameEn":"Kladeos","region":"ilia"},"Καυκωνιά":{"lat":37.687501,"lon":21.615827,"nameEn":"Kavkonia","region":"ilia"},"Πλάτανο":{"lat":37.63,"lon":21.695,"nameEn":"Platano","region":"ilia"},"Κοσκινά":{"lat":37.606,"lon":21.636,"nameEn":"Koskina","region":"ilia"},"Μάγειρα":{"lat":37.655,"lon":21.72,"nameEn":"Mageira","region":"ilia"},"Χελιδόνι":{"lat":37.713713,"lon":21.623382,"nameEn":"Chelidoni","region":"ilia"},"Χελιδονίου":{"lat":37.713713,"lon":21.623382,"nameEn":"Chelidoniou","region":"ilia"},"Λατζόι":{"lat":37.708508,"lon":21.560156,"nameEn":"Latzoi","region":"ilia"},"Ξηρόκαμπο":{"lat":37.673,"lon":21.74,"nameEn":"Xirokampo","region":"ilia"},"Υψηλό":{"lat":37.637919,"lon":21.750342,"nameEn":"Ypsilo","region":"ilia"},"Λάσδικα":{"lat":37.66,"lon":21.73,"nameEn":"Lasdika","region":"ilia"},"Αμπάρι":{"lat":37.668,"lon":21.725,"nameEn":"Ambari","region":"ilia"},"Βασιλάκι":{"lat":37.649409,"lon":21.760836,"nameEn":"Vasilaki","region":"ilia"},"Πανόπουλο":{"lat":37.657,"lon":21.704,"nameEn":"Panopoulo","region":"ilia"},"Δούκα":{"lat":37.722256,"lon":21.704521,"nameEn":"Douka","region":"ilia"},"Δούκας":{"lat":37.722256,"lon":21.704521,"nameEn":"Doukas","region":"ilia"},"Άνω_Κάτω_Λούβρο":{"lat":37.67,"lon":21.735,"nameEn":"Ano Kato Louvro","region":"ilia"},"Τσαπαρέικα":{"lat":37.783331,"lon":21.43728,"nameEn":"Tsapareika","region":"ilia"},"Αχλαδινή":{"lat":37.72156,"lon":21.78361,"nameEn":"Achladini","region":"ilia"},"Μηλιές":{"lat":38.95528,"lon":23.275951,"nameEn":"Milies","region":"evia"},"Νεράιδα":{"lat":37.734078,"lon":21.662653,"nameEn":"Neraida","region":"ilia"},"Άσπρα_Σπίτια":{"lat":37.614955,"lon":21.774946,"nameEn":"Aspra Spitia","region":"ilia"},"Καπελλίτσα":{"lat":37.623748,"lon":21.810263,"nameEn":"Kapellitsa","region":"ilia"},"Σέκουλα":{"lat":37.66,"lon":21.728,"nameEn":"Sekoula","region":"ilia"},"Λιβαδάκι":{"lat":37.530259,"lon":21.814153,"nameEn":"Livadaki","region":"ilia"},"Ιστιαία":{"lat":38.953464,"lon":23.150958,"nameEn":"Istiaia","region":"evia"},"Ιστιαία_Εύβοιας":{"lat":38.953464,"lon":23.150958,"nameEn":"Istiaia","region":"evia"},"Ιστιαίας":{"lat":38.953464,"lon":23.150958,"nameEn":"Istiaia","region":"evia"},"Λίμνη":{"lat":38.765075,"lon":23.317626,"nameEn":"Limni","region":"evia"},"Πευκί":{"lat":39.008267,"lon":23.210491,"nameEn":"Pefki","region":"evia"},"Ροβιές":{"lat":38.811883,"lon":23.227968,"nameEn":"Rovies","region":"evia"},"ΑγίαΆννα":{"lat":38.858705,"lon":23.398708,"nameEn":"Agia Anna","region":"evia"},"Αβγαριά_Εύβοιας":{"lat":38.949759,"lon":23.192778,"nameEn":"Avgaria","region":"evia"},"Κεχριές":{"lat":38.81228,"lon":23.368835,"nameEn":"Kechries","region":"evia"},"Γαλατσάδες":{"lat":38.892497,"lon":23.171142,"nameEn":"Galatsades","region":"evia"},"Αγκάλη":{"lat":38.862253,"lon":23.445513,"nameEn":"Agali","region":"evia"},"Αρτεμίσιο":{"lat":39.011569,"lon":23.22637,"nameEn":"Artemisio","region":"evia"},"Μαντούδι":{"lat":38.79866,"lon":23.478772,"nameEn":"Mantoudi","region":"evia"},"Αιδηψού":{"lat":38.879697,"lon":23.047145,"nameEn":"Aidipsos","region":"evia"},"Αιδηψό":{"lat":38.879697,"lon":23.047145,"nameEn":"Aidipsos","region":"evia"},"Λουτρών_Αιδηψού":{"lat":38.879697,"lon":23.047145,"nameEn":"Loutra Aidipsou","region":"evia"},"Βλυχάδα":{"lat":38.582774,"lon":23.298735,"nameEn":"Vlychada","region":"evia"},"Βουλίκι":{"lat":39.021657,"lon":23.243836,"nameEn":"Vouliki","region":"evia"},"Κούλουρος":{"lat":38.85899,"lon":23.254513,"nameEn":"Koulouros","region":"evia"},"Μαρούλι":{"lat":38.869432,"lon":23.242145,"nameEn":"Marouli","region":"evia"},"Κεραμεία":{"lat":38.835697,"lon":23.38846,"nameEn":"Kerameia","region":"evia"},"Παλαιόβρυση":{"lat":38.855619,"lon":23.393641,"nameEn":"Palaiovrysi","region":"evia"},"Σκεπαστή":{"lat":38.83406,"lon":23.364559,"nameEn":"Skepasti","region":"evia"},"Κουρκουλοί":{"lat":38.832993,"lon":23.340848,"nameEn":"Kourkouloi","region":"evia"},"Λεκούνα":{"lat":38.649399,"lon":23.238804,"nameEn":"Lekouna","region":"evia"},"Κάτω_Μονοκαρυά":{"lat":38.929143,"lon":23.207204,"nameEn":"Kato Monokarya","region":"evia"},"Μονοκαρυά":{"lat":38.924529,"lon":23.208727,"nameEn":"Monokarya","region":"evia"},"Καματριάδες":{"lat":38.893826,"lon":23.18244,"nameEn":"Kamatriades","region":"evia"},"Γούβες":{"lat":39.004063,"lon":23.246227,"nameEn":"Gouves","region":"evia"},"Ασμήνιο":{"lat":39.002623,"lon":23.197843,"nameEn":"Asminio","region":"evia"},"Αγιά":{"lat":38.87662,"lon":23.43626,"nameEn":"Agia","region":"evia"},"Βρυσάκι":{"lat":38.139413,"lon":23.879317,"nameEn":"Vrysaki","region":"attica_north"},"Καπιτένια":{"lat":38.141157,"lon":23.87822,"nameEn":"Kapitenia","region":"attica_north"},"Μεσοχώρια":{"lat":38.250811,"lon":24.206313,"nameEn":"Mesochoria","region":"evia"},"Ελαία":{"lat":38.429,"lon":22.434,"nameEn":"Elaia","region":"fokida"},"Καλλιθέα":{"lat":38.391535,"lon":22.140735,"nameEn":"Kallithea","region":"fokida"},"Άγιο_Σπυρίδωνα":{"lat":38.425,"lon":22.43,"nameEn":"Agios Spyridonas","region":"fokida"},"ΆγιοιΠάντες":{"lat":38.368039,"lon":22.295024,"nameEn":"Agioi Pantes","region":"fokida"},"ΌρμοςΛεμονιάς":{"lat":38.3627,"lon":22.249479,"nameEn":"Ormos Lemonias","region":"fokida"},"Πάνορμος":{"lat":38.373051,"lon":22.249408,"nameEn":"Panormos","region":"fokida"},"Ιτέα":{"lat":38.432,"lon":22.422,"nameEn":"Itea","region":"fokida"},"Δίπορο":{"lat":39.990738,"lon":21.654939,"nameEn":"Diporo","region":"grevena"},"Νησί":{"lat":40.006337,"lon":21.606584,"nameEn":"Nisi","region":"grevena"},"Αγαλαίοι":{"lat":40.02771,"lon":21.620975,"nameEn":"Agalaioi","region":"grevena"},"Τρόπαια":{"lat":37.732224,"lon":21.958431,"nameEn":"Tropaia","region":"arcadia"},"Τρίπολη":{"lat":37.51,"lon":22.37,"nameEn":"Tripoli","region":"arcadia"},"Όχθια":{"lat":37.656062,"lon":21.899082,"nameEn":"Ochthia","region":"arcadia"},"Δόξα":{"lat":37.706716,"lon":21.92136,"nameEn":"Doxa","region":"arcadia"},"Λουτρά":{"lat":37.632143,"lon":21.88985,"nameEn":"Loutra","region":"arcadia"},"Τουμπίτσι":{"lat":37.70631,"lon":21.876174,"nameEn":"Toumbitsi","region":"arcadia"},"Χρυσοχώρι":{"lat":37.647189,"lon":21.851893,"nameEn":"Chrysochori","region":"arcadia"},"Μελιδόνι":{"lat":37.695,"lon":22.07,"nameEn":"Melidoni","region":"arcadia"},"Αετοράχη":{"lat":37.71,"lon":22.04,"nameEn":"Aetorachi","region":"arcadia"},"Λίθαρος":{"lat":37.626373,"lon":21.898945,"nameEn":"Litharos","region":"arcadia"},"Κάλλιανη":{"lat":37.689198,"lon":21.924479,"nameEn":"Kalliani","region":"arcadia"},"Αγιονέρι":{"lat":37.642066,"lon":21.877124,"nameEn":"Agioneri","region":"arcadia"},"ΙαματικέςΠηγές":{"lat":37.725,"lon":22.085,"nameEn":"Iamatikes Piges","region":"arcadia"},"Παρνασσός":{"lat":37.638072,"lon":21.90667,"nameEn":"Parnassos","region":"arcadia"},"ΆγιοςΙωάννης":{"lat":37.687171,"lon":22.16788,"nameEn":"Agios Ioannis","region":"arcadia"},"Λιοδώρα":{"lat":37.633463,"lon":21.856136,"nameEn":"Liodora","region":"arcadia"},"Παλαιοχώρι":{"lat":38.124438,"lon":23.414757,"nameEn":"Palaiochori","region":"attica_west"},"Πύρρης":{"lat":37.616047,"lon":21.841134,"nameEn":"Pyrris","region":"arcadia"},"Φαναράκι":{"lat":37.68246,"lon":21.87728,"nameEn":"Fanaraki","region":"arcadia"},"Λώτης":{"lat":37.620646,"lon":21.878642,"nameEn":"Lotis","region":"arcadia"},"Καστράκι":{"lat":37.670457,"lon":21.872404,"nameEn":"Kastraki","region":"arcadia"},"Χιλιομόδι":{"lat":37.809532,"lon":22.870123,"nameEn":"Chilomodi","region":"corinthia"},"Σολομό":{"lat":37.838,"lon":22.757,"nameEn":"Solomo","region":"corinthia"},"Κερατέας":{"lat":37.756565,"lon":24.016189,"nameEn":"Kerateas","region":"attica_south"},"Λαύριο":{"lat":37.718,"lon":24.053,"nameEn":"Lavrio","region":"attica_south"},"Ανάβυσσο":{"lat":37.737562,"lon":23.952192,"nameEn":"Anavyssos","region":"attica_south"},"Συντερίνα":{"lat":37.73,"lon":23.92,"nameEn":"Synterina","region":"attica_south"},"Μαρκάτι":{"lat":37.74324,"lon":24.025995,"nameEn":"Markati","region":"attica_south"},"Άγιο_Κωνσταντίνο":{"lat":37.726096,"lon":24.015035,"nameEn":"Agios Konstantinos","region":"attica_south"},"Αγίους_Θεοδώρους":{"lat":37.933,"lon":23.112,"nameEn":"Agioi Theodoroi","region":"other"},"Αγριλόβουνο":{"lat":37.936,"lon":23.12,"nameEn":"Agrilovouno","region":"other"},"Μοναστηράκι":{"lat":37.934,"lon":23.115,"nameEn":"Monastiraki","region":"other"},"πυρκαγιά":{"lat":null,"lon":null,"nameEn":"fire","region":"other"},"Αττική":{"lat":null,"lon":null,"nameEn":"Attica","region":"other"},"Αττικής":{"lat":null,"lon":null,"nameEn":"Attica","region":"other"},"Ευβοίας":{"lat":null,"lon":null,"nameEn":"Evia","region":"evia"},"Εύβοια":{"lat":null,"lon":null,"nameEn":"Evia","region":"evia"},"Εύβοιας":{"lat":null,"lon":null,"nameEn":"Evia","region":"evia"},"Ηλείας":{"lat":null,"lon":null,"nameEn":"Ilia","region":"ilia"},"Μεσσηνίας":{"lat":null,"lon":null,"nameEn":"Messinia","region":"messinia"},"Φωκίδας":{"lat":null,"lon":null,"nameEn":"Fokida","region":"fokida"},"Κρήτη":{"lat":null,"lon":null,"nameEn":"Crete","region":"other"},"Γρεβενών":{"lat":null,"lon":null,"nameEn":"Grevena","region":"grevena"},"Αγ":{"lat":null,"lon":null,"nameEn":"Ag.","region":"other"},"Αγία":{"lat":null,"lon":null,"nameEn":"Agia","region":"other"},"Αγίου":{"lat":null,"lon":null,"nameEn":"Agiou","region":"other"},"Νέα":{"lat":null,"lon":null,"nameEn":"Nea","region":"other"},"Άνω":{"lat":null,"lon":null,"nameEn":"Ano","region":"other"},"Κέντρο":{"lat":null,"lon":null,"nameEn":"Kentro","region":"other"},"Λεωφόρου":{"lat":null,"lon":null,"nameEn":"Leoforos","region":"other"},"Αθηνών_Λαμίας":{"lat":null,"lon":null,"nameEn":"Athens-Lamia Highway","region":"other"},"Τρίπολης_Ολυμπίας":{"lat":null,"lon":null,"nameEn":"Tripoli-Olympia Road","region":"other"},"Λόφος":{"lat":null,"lon":null,"nameEn":"Lofos","region":"other"},"Θησέως":{"lat":null,"lon":null,"nameEn":"Thiseos","region":"other"},"ΑγιάΠαρασκευή":{"lat":38.144769,"lon":23.866429,"nameEn":"Agia Paraskevi","region":"attica_north"},"ΑγίαΣκέπη":{"lat":38.139413,"lon":23.879317,"nameEn":"Agia Skepi","region":"attica_north"},"ΛόφοςΚουρεμένου":{"lat":38.139413,"lon":23.879317,"nameEn":"Lofos Koursmenou","region":"attica_north"},"ΝέαΣτύρα":{"lat":38.167,"lon":24.222,"nameEn":"Nea Styra","region":"evia"},"ΑγίουΣτεφάνου":{"lat":38.141904,"lon":23.858815,"nameEn":"Agios Stefanos","region":"attica_north"},"Θεολόγο":{"lat":38.651253,"lon":23.172259,"nameEn":"Theologo","region":"evia"},"Ιπποκράτειο":{"lat":38.202969,"lon":23.803842,"nameEn":"Ippokrateio","region":"attica_north"},"Παλαιοχώρι@evia":{"lat":38.821242,"lon":23.251886,"nameEn":"Palaiochori","region":"evia"},"Παλαιοχώρι@arcadia":{"lat":37.7,"lon":22.062,"nameEn":"Palaiochori","region":"arcadia"}};
+
+const REGION_COLORS = {
+  rhodes: '#e6194b',
+  messinia: '#3cb44b',
+  attica_north: '#4363d8',
+  attica_west: '#f58231',
+  attica_south: '#911eb4',
+  ilia: '#42d4f4',
+  evia: '#f032e6',
+  fokida: '#bfef45',
+  grevena: '#fabebe',
+  arcadia: '#469990',
+  corinthia: '#e6beff',
+  other: '#808080'
+};
+
+const REGION_LABELS = {
+  rhodes: 'Rhodes', messinia: 'Messinia', attica_north: 'Attica North',
+  attica_west: 'Attica West', attica_south: 'Attica South', ilia: 'Ilia',
+  evia: 'Evia', fokida: 'Fokida', grevena: 'Grevena', arcadia: 'Arcadia',
+  corinthia: 'Corinthia', other: 'Other'
+};
+
+// ── Build map ──
+const map = L.map('map').setView([38.2, 23.5], 7);
+
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap', maxZoom: 19
+});
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '&copy; Esri', maxZoom: 19
+});
+osmLayer.addTo(map);
+L.control.layers({ 'OpenStreetMap': osmLayer, 'Satellite': satLayer }).addTo(map);
+
+// ── Create markers ──
+const markers = {};
+const markerLayers = {};
+
+for (const region of Object.keys(REGION_COLORS)) {
+  markerLayers[region] = L.layerGroup().addTo(map);
+}
+
+const geocoded = [];
+const nullEntries = [];
+
+for (const [tag, data] of Object.entries(GAZETTEER)) {
+  if (data.lat === null) {
+    nullEntries.push({ tag, ...data });
+    continue;
+  }
+  geocoded.push({ tag, ...data });
+
+  const color = REGION_COLORS[data.region] || '#808080';
+  const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lon}`;
+
+  const marker = L.circleMarker([data.lat, data.lon], {
+    radius: 7, fillColor: color, color: '#333', weight: 1, fillOpacity: 0.85
+  });
+
+  marker.bindPopup(`
+    <div class="popup-tag">${tag}</div>
+    <div class="popup-name">${data.nameEn} &mdash; ${REGION_LABELS[data.region] || data.region}</div>
+    <div class="popup-coords">${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}</div>
+    <a class="popup-link" href="${gmapsUrl}" target="_blank" rel="noopener">Open in Google Maps</a>
+  `, { maxWidth: 280 });
+
+  marker.bindTooltip(tag, { permanent: false, direction: 'top', offset: [0, -8] });
+  marker.addTo(markerLayers[data.region]);
+  markers[tag] = marker;
+}
+
+// ── Deduplicate for sidebar (group by nameEn + coords) ──
+const seen = new Map();
+for (const entry of geocoded) {
+  const key = `${entry.lat},${entry.lon}`;
+  if (!seen.has(key)) {
+    seen.set(key, { ...entry, altTags: [] });
+  } else {
+    seen.get(key).altTags.push(entry.tag);
+  }
+}
+const uniqueEntries = [...seen.values()];
+uniqueEntries.sort((a, b) => (REGION_LABELS[a.region] || '').localeCompare(REGION_LABELS[b.region] || '') || a.nameEn.localeCompare(b.nameEn));
+
+// ── Stats ──
+document.getElementById('stats').textContent =
+  `${geocoded.length} geocoded entries (${uniqueEntries.length} unique locations), ${nullEntries.length} without coordinates`;
+
+// ── Filter buttons ──
+const filtersEl = document.getElementById('filters');
+let activeRegion = null;
+
+const allBtn = document.createElement('button');
+allBtn.className = 'filter-btn active';
+allBtn.textContent = 'All';
+allBtn.onclick = () => filterRegion(null);
+filtersEl.appendChild(allBtn);
+
+for (const [region, label] of Object.entries(REGION_LABELS)) {
+  const count = geocoded.filter(e => e.region === region).length;
+  if (count === 0) continue;
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.textContent = `${label} (${count})`;
+  btn.dataset.region = region;
+  btn.style.borderColor = REGION_COLORS[region];
+  btn.onclick = () => filterRegion(region);
+  filtersEl.appendChild(btn);
+}
+
+function filterRegion(region) {
+  activeRegion = region;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', region === null ? b.textContent === 'All' : b.dataset.region === region);
+  });
+  for (const [r, layer] of Object.entries(markerLayers)) {
+    if (region === null || r === region) {
+      map.addLayer(layer);
+    } else {
+      map.removeLayer(layer);
+    }
+  }
+  renderEntries();
+}
+
+// ── Sidebar entries ──
+function renderEntries() {
+  const searchText = document.getElementById('search').value.toLowerCase();
+  const entriesEl = document.getElementById('entries');
+  entriesEl.innerHTML = '';
+
+  const filtered = uniqueEntries.filter(e => {
+    if (activeRegion && e.region !== activeRegion) return false;
+    if (searchText) {
+      const haystack = (e.tag + ' ' + e.nameEn + ' ' + e.altTags.join(' ')).toLowerCase();
+      return haystack.includes(searchText);
+    }
+    return true;
+  });
+
+  for (const entry of filtered) {
+    const div = document.createElement('div');
+    div.className = 'entry';
+    const allTags = [entry.tag, ...entry.altTags].join(', ');
+    div.innerHTML = `
+      <div>
+        <span class="tag">${entry.nameEn}</span>
+        <span class="name-en">${allTags}</span>
+      </div>
+      <span class="region-badge" style="background:${REGION_COLORS[entry.region]}">${REGION_LABELS[entry.region] || entry.region}</span>
+    `;
+    div.onclick = () => {
+      map.setView([entry.lat, entry.lon], 14);
+      markers[entry.tag].openPopup();
+    };
+    entriesEl.appendChild(div);
+  }
+}
+
+// Null entries
+const nullEl = document.getElementById('null-entries');
+for (const entry of nullEntries) {
+  const div = document.createElement('div');
+  div.className = 'entry';
+  div.innerHTML = `<span class="tag">${entry.tag}</span> <span class="name-en">${entry.nameEn}</span>`;
+  nullEl.appendChild(div);
+}
+
+document.getElementById('search').addEventListener('input', renderEntries);
+renderEntries();
+</script>
+</body>
+</html>

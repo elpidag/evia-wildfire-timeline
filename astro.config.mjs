@@ -6,5 +6,13 @@ const isDevCommand = process.argv.includes('dev');
 
 export default defineConfig({
   integrations: [react(), ...(isDevCommand ? [keystatic()] : [])],
-  output: 'static'
+  output: 'static',
+  vite: {
+    optimizeDeps: {
+      include: ['maplibre-gl'],
+      esbuildOptions: {
+        target: 'esnext'
+      }
+    }
+  }
 });

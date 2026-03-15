@@ -8,7 +8,7 @@ datePrecision: day
 isOngoing: false
 category: wildfire
 actors:
-  - actor-hellenic-fire-service
+  - actor-greek-government
 places:
   - place-north-evia
 summary: >-
