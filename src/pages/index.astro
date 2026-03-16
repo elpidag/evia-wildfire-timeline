@@ -268,65 +268,20 @@
         }
 
         /* ════════════════════════════════════════════════
-           Phase 1 — Speed up circle to the top position.
-
-           Approach:
-           • Read the current animation angle.
-           • Stop the CSS keyframe and lock the inline transform
-             (both changes batched in the same JS task so the
-             browser applies them atomically — no 1-frame snap).
-           • Use a double-rAF (NOT void offsetWidth) to give the
-             browser one natural paint cycle to commit the stopped
-             state before starting the CSS transition.  Forcing a
-             synchronous layout via offsetWidth briefly exposes the
-             SVG's HTML size attributes (320×320) before the CSS
-             override (240×240) is re-applied, causing the circle
-             to visually resize.
-           • toSpin = remaining (just close the arc to 0°); if already
-             near the top (<30°) add one extra revolution so the motion
-             reads clearly. Duration scales with distance at 180°/s.
-           • transitionend fires the exact frame the spin finishes.
+           Phase 1 — Stop circle and go straight to crossfade.
         ════════════════════════════════════════════════ */
         function phase1() {
           if (!circleSvg || !circleText) return simpleReveal();
           landing.style.cursor = 'pointer';
 
-          // Snapshot current angle from the running 30 s animation.
+          // Stop the CSS animation and lock the current angle.
           const tfStr = window.getComputedStyle(circleSvg).transform;
           const mat   = tfStr === 'none' ? new DOMMatrix() : new DOMMatrix(tfStr);
           const angle = ((Math.atan2(mat.b, mat.a) * 180 / Math.PI) % 360 + 360) % 360;
-
-          // Spin only the remaining arc to the top.
-          // If already within 30° of the top, add one full revolution so the
-          // motion is visible — otherwise just go straight to 0°.
-          const remaining = (360 - angle) % 360;
-          const toSpin    = remaining < 30 ? remaining + 360 : remaining;
-          // 180°/s — one revolution every 2 s; minimum 400 ms so the motion reads.
-          const SPEED  = 180;
-          const DUR_MS = Math.max(Math.round(toSpin / SPEED * 1000), 400);
-
-          // Lock inline transform at current angle and stop the CSS animation
-          // in the SAME JS task so both are committed atomically — no stutter.
           circleSvg.style.transform = `rotate(${angle}deg)`;
           circleSvg.style.animation = 'none';
 
-          // Double rAF: frame N paints the stopped circle at `angle`,
-          // frame N+1 adds the transition and updates the target — the browser
-          // sees a clear "before" and "after" and runs the CSS transition.
-          requestAnimationFrame(() => {
-            circleSvg.style.transition = `transform ${DUR_MS}ms linear`;
-            requestAnimationFrame(() => {
-              circleSvg.style.transform = `rotate(${angle + toSpin}deg)`;
-            });
-          });
-
-          // transitionend fires the exact frame the spin completes —
-          // more accurate than setTimeout and avoids an extra delay.
-          circleSvg.addEventListener('transitionend', function onDone() {
-            circleSvg.removeEventListener('transitionend', onDone);
-            circleSvg.style.transition = 'none';
-            phase2();
-          });
+          phase2();
         }
 
         /* ════════════════════════════════════════════════
