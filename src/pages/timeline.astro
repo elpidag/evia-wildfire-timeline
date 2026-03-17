@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TimelineWorkspace from '../components/timeline/TimelineWorkspace.tsx';
+import TimelineSlideshow from '../components/timeline/TimelineSlideshow.tsx';
 ---
 
 <BaseLayout title="Timeline | Evia Wildfire Timeline">
@@ -9,16 +9,5 @@ import TimelineWorkspace from '../components/timeline/TimelineWorkspace.tsx';
     <a href="#" class="timeline-nav-tab">_Forestry Service</a>
     <a href="/home" class="timeline-nav-tab">_Hybrid Schemes</a>
   </nav>
-  <TimelineWorkspace client:load />
-
-  <script>
-    document.addEventListener('keydown', (e) => {
-      // Ignore if user is focused on an input or the timeline host (which uses arrow keys for panning)
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
-      if (e.key === 'ArrowRight') {
-        window.location.href = '/timeline/focus-1';
-      }
-    });
-  </script>
+  <TimelineSlideshow client:load />
 </BaseLayout>

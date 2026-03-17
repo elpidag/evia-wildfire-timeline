@@ -28,35 +28,38 @@ import { alerts } from '../lib/alerts/data';
   </div>
 
   <script>
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      // If click is inside the map, timeline, detail card, controls, or a link/button — do nothing
-      if (
-        target.closest('.maplibregl-map') ||
-        target.closest('.maplibregl-canvas-container') ||
-        target.closest('canvas') ||
-        target.closest('[class*="AlertsTimeline"]') ||
-        target.closest('[class*="AlertDetail"]') ||
-        target.closest('button') ||
-        target.closest('a') ||
-        target.closest('input') ||
-        target.closest('label') ||
-        target.closest('.alerts-header')
-      ) return;
-
-      window.location.href = '/timeline';
-    });
-
-    document.addEventListener('keydown', (e) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight') {
+    function setupAlertsClick() {
+      const handler = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (
+          target.closest('.maplibregl-map') ||
+          target.closest('.maplibregl-canvas-container') ||
+          target.closest('canvas') ||
+          target.closest('[class*="AlertsTimeline"]') ||
+          target.closest('[class*="AlertDetail"]') ||
+          target.closest('button') ||
+          target.closest('a') ||
+          target.closest('input') ||
+          target.closest('label') ||
+          target.closest('.alerts-header')
+        ) return;
         window.location.href = '/timeline';
-      }
-      if (e.key === 'ArrowLeft') {
-        window.location.href = '/archive';
-      }
+      };
+      document.addEventListener('click', handler);
+      document.addEventListener('astro:before-swap', () => {
+        document.removeEventListener('click', handler);
+      }, { once: true });
+    }
+    setupAlertsClick();
+    document.addEventListener('astro:page-load', () => {
+      if (document.body.dataset.navLeft === '/archive') setupAlertsClick();
     });
+  </script>
+  <script is:inline>document.body.dataset.navLeft = '/archive';</script>
+  <script>
+    // Eagerly prefetch timeline data while user is on alerts page
+    import { fetchTimelineResources } from '@/lib/timeline';
+    fetchTimelineResources().catch(() => {});
   </script>
 </BaseLayout>
 

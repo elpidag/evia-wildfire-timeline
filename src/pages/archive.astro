@@ -1,17 +1,6 @@
 ---
 // Archive — Talking Around Fire
-// Full-screen 5×4 grid. Dark background, light-gray cells, colored border accents.
-
-// Distribute the three tab colors + no-border across 20 cells.
-// null = no visible border (dark gap shows through).
-const BORDERS: (string | null)[] = [
-  null,       '#d86958', null,       '#23349d', null,
-  '#23349d',  '#d86958', null,       '#7376c6', '#d86958',
-  '#d86958',  null,      '#d86958',  '#23349d', null,
-  '#7376c6',  null,      '#23349d',  null,      '#7376c6',
-];
-
-const cells = BORDERS.map((border, i) => ({ border, n: i + 1 }));
+// Centered navigation menu on dark background.
 ---
 
 <!doctype html>
@@ -22,9 +11,7 @@ const cells = BORDERS.map((border, i) => ({ border, n: i + 1 }));
     <link rel="stylesheet" href="https://use.typekit.net/dzu6izh.css" />
     <title>Archive — Talking Around Fire</title>
     <style>
-      *, *::before, *::after {
-        box-sizing: border-box;Now we have to edit
-      }
+      *, *::before, *::after { box-sizing: border-box; }
 
       html, body {
         margin: 0;
@@ -34,77 +21,52 @@ const cells = BORDERS.map((border, i) => ({ border, n: i + 1 }));
         background: #000;
       }
 
-      /* ── Full-screen shell ── */
       .archive-page {
         height: 100vh;
         background: #000;
         display: flex;
-        flex-direction: column;
-        padding: 3rem 12.5% 2rem;
-        gap: 6rem;
-      }
-
-      /* ── Navigation tabs — right-aligned ── */
-      .archive-nav {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
         align-items: center;
-        gap: 2.2rem;
-        flex-shrink: 0;
+        justify-content: center;
       }
 
-      .archive-tab {
-        display: block;
-        padding: 0;
+      .archive-menu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2.4rem;
+      }
+
+      .archive-link {
         font-family: 'bebas-neue-pro', 'Bebas Neue Pro', 'Arial Narrow', sans-serif;
-        font-size: 0.8rem;
+        font-size: 1.4rem;
         font-weight: 400;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
         text-decoration: none;
         color: #ffffff;
         text-transform: uppercase;
         transition: opacity 0.15s ease;
       }
 
-      .archive-tab:hover { opacity: 0.72; }
-
-      /* ── Grid ── */
-      .archive-grid {
-        flex: 1;
-        min-height: 0;
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        grid-template-rows: repeat(4, 1fr);
-        gap: 10px;
-      }
-
-      /* ── Cell ── */
-      .archive-cell {
-        background: #e9e9e9;
+      .archive-link:hover {
+        opacity: 0.65;
       }
     </style>
   </head>
   <body>
-
     <div class="archive-page">
-
-      <nav class="archive-nav" aria-label="Section navigation">
-        <a href="/alerts"          class="archive-tab tab-policy">_Planning &amp; Policy</a>
-        <a href="#"               class="archive-tab tab-forestry">_Forestry Service</a>
-        <a href="/home"           class="archive-tab tab-hybrid">_Hybrid Schemes</a>
+      <nav class="archive-menu" aria-label="Section navigation">
+        <a href="/alerts" class="archive-link">_Planning &amp; Policy</a>
+        <a href="#" class="archive-link">_Forestry Service</a>
+        <a href="/home" class="archive-link">_Hybrid Schemes</a>
       </nav>
-
-      <div class="archive-grid">
-        {cells.map(cell => (
-          <div
-            class="archive-cell"
-            style={cell.border ? `--cb:${cell.border}` : ''}
-          ></div>
-        ))}
-      </div>
-
     </div>
 
+    <script>
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+          window.location.href = '/alerts';
+        }
+      });
+    </script>
   </body>
 </html>

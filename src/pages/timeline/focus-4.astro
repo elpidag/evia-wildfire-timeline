@@ -12,7 +12,7 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
 
   <div class="focus4-layout">
     <div class="focus4-photo-area">
-      <img src="/images/focus4-map.png" alt="" class="focus4-photo" />
+      <img src="/images/focus4-map.JPG" alt="Map of North Evia forestry zones" class="focus4-photo" />
     </div>
     <div class="focus4-timeline-wrap">
       <TimelineWorkspace
@@ -20,10 +20,10 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
         focusDomain={['1965-01-01', '2026-03-16']}
         highlightedIds={[
           'evia-1979-fek-289a',
-          'evia-1998-fek-112a',
           'evia-1986-fek-44a',
-          'evia-2024-fek-63a',
+          'evia-1998-fek-112a',
           'evia-2012-legislation-changes-regarding-forestry',
+          'evia-2024-fek-63a',
         ]}
         displayOptions={{
           hideLabels: true,
@@ -85,16 +85,5 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
     }
   </style>
 
-  <script>
-    document.addEventListener('keydown', (e) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
-      if (e.key === 'ArrowRight') {
-        window.location.href = '/presentation/reconstruction';
-      }
-      if (e.key === 'ArrowLeft') {
-        window.location.href = '/timeline/focus-3';
-      }
-    });
-  </script>
+  <script is:inline>document.body.dataset.navLeft = '/presentation/reconstruction';</script>
 </BaseLayout>

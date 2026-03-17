@@ -1,4 +1,5 @@
 ---
+import { ViewTransitions } from 'astro:transitions';
 import '../styles/global.css';
 
 interface Props {
@@ -16,11 +17,52 @@ const { title, description = 'Evia Wildfire Timeline research archive.' } = Astr
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="stylesheet" href="https://use.typekit.net/dzu6izh.css" />
+    <link rel="preload" href="/data/events.index.json" as="fetch" crossorigin />
+    <link rel="preload" href="/data/sources.json" as="fetch" crossorigin />
+    <link rel="preload" href="/data/media.json" as="fetch" crossorigin />
     <title>{title}</title>
+    <ViewTransitions />
   </head>
   <body>
     <main class="site-shell">
       <slot />
     </main>
+    <script>
+      // Global keyboard navigation — reads targets from data attributes on <body>
+      // Re-binds on each View Transition via astro:page-load
+      function setupKeyNav() {
+        const handler = (e: KeyboardEvent) => {
+          const tag = (e.target as HTMLElement).tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+          if ((e.target as HTMLElement).closest('.timeline-host')) return;
+
+          const body = document.body;
+          if (e.key === 'ArrowRight') {
+            const next = body.dataset.navRight;
+            if (next) {
+              e.preventDefault();
+              window.location.href = next;
+            }
+          }
+          if (e.key === 'ArrowLeft') {
+            const prev = body.dataset.navLeft;
+            if (prev) {
+              e.preventDefault();
+              window.location.href = prev;
+            }
+          }
+        };
+
+        document.addEventListener('keydown', handler);
+        // Clean up on next navigation
+        document.addEventListener('astro:before-swap', () => {
+          document.removeEventListener('keydown', handler);
+        }, { once: true });
+      }
+
+      // Run on initial load and after each View Transition
+      setupKeyNav();
+      document.addEventListener('astro:page-load', setupKeyNav);
+    </script>
   </body>
 </html>
