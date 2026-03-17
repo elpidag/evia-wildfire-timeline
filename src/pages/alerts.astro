@@ -50,9 +50,6 @@ import { alerts } from '../lib/alerts/data';
     document.addEventListener('keydown', (e) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'ArrowRight') {
-        window.location.href = '/timeline';
-      }
       if (e.key === 'ArrowLeft') {
         window.location.href = '/archive';
       }

@@ -89,11 +89,8 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
     document.addEventListener('keydown', (e) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
-      if (e.key === 'ArrowRight') {
-        window.location.href = '/presentation/reconstruction';
-      }
       if (e.key === 'ArrowLeft') {
-        window.location.href = '/timeline/focus-3';
+        window.location.href = '/presentation/reconstruction';
       }
     });
   </script>

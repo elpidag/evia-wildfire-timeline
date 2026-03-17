@@ -8,19 +8,26 @@ import { evoiaMetaProjects } from '../../lib/evoia-meta/data';
   title="Presentation | Reconstruction | Evia Wildfire Timeline"
   description="Presentation deck for announced Evia Meta reconstruction projects."
 >
-  <AnnouncedProjectsDeck client:only="react" projects={evoiaMetaProjects} />
+  <nav class="timeline-nav" aria-label="Section navigation">
+    <a href="/timeline" class="timeline-nav-tab">_Planning &amp; Policy</a>
+    <a href="#" class="timeline-nav-tab">_Forestry Service</a>
+    <a href="/home" class="timeline-nav-tab">_Hybrid Schemes</a>
+  </nav>
+
+  <div class="presentation-deck-wrap">
+    <AnnouncedProjectsDeck client:only="react" projects={evoiaMetaProjects} />
+  </div>
 
   <style is:global>
     body {
       overflow: hidden;
-      margin: 0;
     }
+  </style>
 
-    .site-shell {
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
+  <style>
+    .presentation-deck-wrap {
+      height: calc(100vh - 8rem);
+      min-height: 20rem;
     }
   </style>
 </BaseLayout>

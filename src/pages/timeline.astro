@@ -13,11 +13,13 @@ import TimelineWorkspace from '../components/timeline/TimelineWorkspace.tsx';
 
   <script>
     document.addEventListener('keydown', (e) => {
-      // Ignore if user is focused on an input or the timeline host (which uses arrow keys for panning)
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
       if (e.key === 'ArrowRight') {
         window.location.href = '/timeline/focus-1';
+      }
+      if (e.key === 'ArrowLeft') {
+        window.location.href = '/alerts';
       }
     });
   </script>

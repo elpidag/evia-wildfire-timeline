@@ -112,12 +112,32 @@ function computeColumnOverlays(
 export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDeckProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const barsRef = useRef<SVGGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<SVGGElement>(null);
   const overlaysRef = useRef<SVGGElement>(null);
   const isFirstRenderRef = useRef(true);
   const [slideIndex, setSlideIndex] = useState(0);
   const reducedMotion = usePrefersReducedMotion();
-  const viewport = useViewportSize();
+  const rawViewport = useViewportSize();
+
+  // Measure actual container size (respects .site-shell padding)
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      setContainerSize({ width: el.clientWidth, height: el.clientHeight });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const viewport = {
+    width: containerSize.width || rawViewport.width,
+    height: containerSize.height || rawViewport.height,
+  };
 
   const layout = useMemo(
     () => computeSlideLayout(projects, viewport.width, viewport.height, slideIndex),
@@ -138,12 +158,24 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         case 'ArrowRight':
         case 'ArrowDown':
           event.preventDefault();
-          setSlideIndex((current) => Math.min(current + 1, TOTAL_SLIDES - 1));
+          setSlideIndex((current) => {
+            if (current >= TOTAL_SLIDES - 1) {
+              window.location.href = '/timeline/focus-4';
+              return current;
+            }
+            return current + 1;
+          });
           break;
         case 'ArrowLeft':
         case 'ArrowUp':
           event.preventDefault();
-          setSlideIndex((current) => Math.max(current - 1, 0));
+          setSlideIndex((current) => {
+            if (current <= 0) {
+              window.location.href = '/timeline/focus-3';
+              return current;
+            }
+            return current - 1;
+          });
           break;
         case 'Home':
           event.preventDefault();
@@ -290,6 +322,7 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
   }, [layout, slideIndex, transitionMs]);
 
   return (
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
     <svg
       ref={svgRef}
       width={viewport.width}
@@ -477,5 +510,6 @@ export default function AnnouncedProjectsDeck({ projects }: AnnouncedProjectsDec
         ))}
       </g>
     </svg>
+    </div>
   );
 }
