@@ -258,10 +258,10 @@ export default function TimelineWorkspace({ focusDomain, highlightedIds, display
           focusDomain={focusDomain}
           highlightedIds={highlightedSet}
           displayOptions={displayOptions}
+          selectedOverlay={!legendAbove && showSelectedOverlay ? <EventDetailCard event={selectedEvent} /> : null}
         />
         <div className="timeline-bottom-row">
           {!legendAbove && <TimelineLegend events={filteredEvents} displayOptions={displayOptions} />}
-          {!legendAbove && showSelectedOverlay && <EventDetailCard event={selectedEvent} />}
           {highlightedEvents.length > 0
             ? highlightedEvents.map((ev) => <EventDetailCard key={ev.id} event={ev} />)
             : !showSelectedOverlay && selectedEvent && <EventDetailCard event={selectedEvent} />}
