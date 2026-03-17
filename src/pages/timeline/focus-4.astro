@@ -85,13 +85,5 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
     }
   </style>
 
-  <script>
-    document.addEventListener('keydown', (e) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
-      if (e.key === 'ArrowLeft') {
-        window.location.href = '/presentation/reconstruction';
-      }
-    });
-  </script>
+  <script is:inline>document.body.dataset.navLeft = '/presentation/reconstruction';</script>
 </BaseLayout>

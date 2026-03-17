@@ -6,6 +6,7 @@ import {
   deriveFilterOptions,
   fetchTimelineResources,
   filterTimelineEvents,
+  getCachedTimelineResources,
   readTimelineQuery,
   sanitizeFilters,
   type MediaLookup,
@@ -69,12 +70,14 @@ type WorkspaceProps = {
 };
 
 export default function TimelineWorkspace({ focusDomain, highlightedIds, displayOptions }: WorkspaceProps = {}) {
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  // Initialize from cache synchronously to avoid "Loading" flash on subsequent navigations
+  const cached = getCachedTimelineResources();
+  const [events, setEvents] = useState<TimelineEvent[]>(cached?.events ?? []);
   const [filters, setFilters] = useState<TimelineFilterState>(() => createEmptyFilters());
-  const [sourcesById, setSourcesById] = useState<SourceLookup>({});
-  const [mediaById, setMediaById] = useState<MediaLookup>({});
+  const [sourcesById, setSourcesById] = useState<SourceLookup>(cached?.sourcesById ?? {});
+  const [mediaById, setMediaById] = useState<MediaLookup>(cached?.mediaById ?? {});
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!cached);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasReadUrlState = useRef(false);
 

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
+import TimelineSlideshow from '../../components/timeline/TimelineSlideshow.tsx';
 ---
 
 <BaseLayout title="Timeline Focus 1 | Evia Wildfire Timeline">
@@ -9,22 +9,5 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
     <a href="#" class="timeline-nav-tab">_Forestry Service</a>
     <a href="/home" class="timeline-nav-tab">_Hybrid Schemes</a>
   </nav>
-  <TimelineWorkspace client:load focusDomain={['2021-07-20', '2021-10-01']} highlightedIds={[
-    'evia-2021-press-conference',
-    'evia-2021-announcement-meetings-events-demonstrations-by-civil-society',
-    'evia-2021-announcement-meeting-event-by-local-municipalities'
-  ]} />
-
-  <script>
-    document.addEventListener('keydown', (e) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).closest('.timeline-host')) return;
-      if (e.key === 'ArrowRight') {
-        window.location.href = '/timeline/focus-2';
-      }
-      if (e.key === 'ArrowLeft') {
-        window.location.href = '/timeline';
-      }
-    });
-  </script>
+  <TimelineSlideshow client:load initialSlide={1} />
 </BaseLayout>

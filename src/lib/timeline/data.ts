@@ -58,16 +58,73 @@ async function fetchJson(path: string, signal?: AbortSignal): Promise<unknown> {
   return response.json();
 }
 
+// ── Cache layer ──
+// In-memory cache for View Transitions (SPA nav).
+// sessionStorage backup for full page reloads (archive → timeline).
+
+const STORAGE_KEY = 'tl-cache-v1';
+let _cache: TimelineResources | null = null;
+
+function loadFromStorage(): TimelineResources | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      events: toTimelineEvents(parsed.events),
+      sourcesById: sourceLookupSchema.parse(parsed.sources),
+      mediaById: mediaLookupSchema.parse(parsed.media),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(eventsRaw: unknown, sourcesRaw: unknown, mediaRaw: unknown): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+      events: eventsRaw,
+      sources: sourcesRaw,
+      media: mediaRaw,
+    }));
+  } catch {
+    // storage full — ignore
+  }
+}
+
+/** Synchronous access to cached data (null if not yet loaded) */
+export function getCachedTimelineResources(): TimelineResources | null {
+  if (_cache) return _cache;
+  _cache = loadFromStorage();
+  return _cache;
+}
+
 export async function fetchTimelineResources(signal?: AbortSignal): Promise<TimelineResources> {
+  if (_cache) return _cache;
+
+  // Try sessionStorage first (survives full page reloads)
+  const stored = loadFromStorage();
+  if (stored) {
+    _cache = stored;
+    return _cache;
+  }
+
   const [eventsRaw, sourcesRaw, mediaRaw] = await Promise.all([
     fetchJson('/data/events.index.json', signal),
     fetchJson('/data/sources.json', signal),
     fetchJson('/data/media.json', signal)
   ]);
 
-  return {
+  // Save raw data to sessionStorage for next full reload
+  saveToStorage(eventsRaw, sourcesRaw, mediaRaw);
+
+  _cache = {
     events: toTimelineEvents(eventsRaw),
     sourcesById: sourceLookupSchema.parse(sourcesRaw),
     mediaById: mediaLookupSchema.parse(mediaRaw)
   };
+
+  return _cache;
 }
