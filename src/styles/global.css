@@ -389,6 +389,7 @@ a:hover {
   bottom: 0;
 }
 
+
 .timeline-host:focus-visible {
   outline-offset: 2px;
 }
@@ -419,6 +420,10 @@ a:hover {
 }
 .event-detail-card + .event-detail-card {
   margin-left: 8px;
+}
+
+.timeline-overlay-card-wrap .event-detail-card {
+  background: rgba(180, 180, 180, 0.25);
 }
 
 .event-detail-header {

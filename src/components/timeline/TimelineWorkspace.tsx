@@ -65,11 +65,12 @@ export type TimelineDisplayOptions = {
 
 type WorkspaceProps = {
   focusDomain?: [string, string];
+  initialDomain?: [string, string];
   highlightedIds?: string[];
   displayOptions?: TimelineDisplayOptions;
 };
 
-export default function TimelineWorkspace({ focusDomain, highlightedIds, displayOptions }: WorkspaceProps = {}) {
+export default function TimelineWorkspace({ focusDomain, initialDomain, highlightedIds, displayOptions }: WorkspaceProps = {}) {
   // Initialize from cache synchronously to avoid "Loading" flash on subsequent navigations
   const cached = getCachedTimelineResources();
   const [events, setEvents] = useState<TimelineEvent[]>(cached?.events ?? []);
@@ -256,12 +257,13 @@ export default function TimelineWorkspace({ focusDomain, highlightedIds, display
           selectedEventId={selectedEventId}
           onSelectEvent={(eventId) => setSelectedEventId(eventId)}
           focusDomain={focusDomain}
+          initialDomain={initialDomain}
           highlightedIds={highlightedSet}
           displayOptions={displayOptions}
+          selectedOverlay={!legendAbove && showSelectedOverlay ? <EventDetailCard event={selectedEvent} /> : null}
         />
         <div className="timeline-bottom-row">
           {!legendAbove && <TimelineLegend events={filteredEvents} displayOptions={displayOptions} />}
-          {!legendAbove && showSelectedOverlay && <EventDetailCard event={selectedEvent} />}
           {highlightedEvents.length > 0
             ? highlightedEvents.map((ev) => <EventDetailCard key={ev.id} event={ev} />)
             : !showSelectedOverlay && selectedEvent && <EventDetailCard event={selectedEvent} />}

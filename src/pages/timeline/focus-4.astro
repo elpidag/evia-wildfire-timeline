@@ -56,11 +56,12 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
     }
     .focus4-photo-area {
       flex: 1 1 0;
-      min-height: 0;
+      min-height: 100px;
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
       padding: 0;
+      overflow: hidden;
     }
     .focus4-photo {
       max-height: 100%;
@@ -68,22 +69,34 @@ import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
       object-fit: contain;
     }
     .focus4-timeline-wrap {
-      transform: translateY(-80px);
+      flex-shrink: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .focus4-timeline-wrap :global(.timeline-workspace) {
       height: auto;
       min-height: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     .focus4-timeline-wrap :global(.timeline-bottom-row) {
       padding-left: 26px;
       padding-right: 18px;
       gap: var(--space-3);
+      flex-shrink: 1;
+      min-height: 0;
+      overflow: hidden;
     }
     .focus4-timeline-wrap :global(.timeline-bottom-row .event-detail-card) {
       flex: 1 1 0;
       width: auto;
+      overflow: hidden;
     }
   </style>
 
-  <script is:inline>document.body.dataset.navLeft = '/presentation/reconstruction';</script>
+  <script is:inline>document.body.dataset.navLeft = '/presentation/reconstruction'; document.body.dataset.navRight = '/timeline/focus-5';</script>
 </BaseLayout>

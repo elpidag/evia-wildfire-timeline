@@ -10,7 +10,7 @@
     "ingest:evoia-meta": "tsx scripts/ingest-evoia-meta.ts",
     "ingest:alerts": "tsx scripts/ingest-112-alerts.ts",
     "validate:content": "tsx scripts/build-data.ts --validate-only",
-    "build": "npm run ingest:alerts && npm run build:data && npm run validate:content && astro build",
+    "build": "npm run ingest:alerts && npx tsx scripts/csv-to-events.ts && npm run validate:content && astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" keystatic.config.ts"

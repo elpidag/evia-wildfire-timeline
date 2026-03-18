@@ -40,13 +40,20 @@ const SLIDES: Slide[] = [
 
 interface TimelineSlideshowProps {
   initialSlide?: number;
+  /** Override the slide's focusDomain (used for standalone pages like focus-5) */
+  overrideDomain?: [string, string];
 }
 
-export default function TimelineSlideshow({ initialSlide = 0 }: TimelineSlideshowProps) {
+export default function TimelineSlideshow({ initialSlide = 0, overrideDomain }: TimelineSlideshowProps) {
   const [slideIndex, setSlideIndex] = useState(initialSlide);
+
+  // When overrideDomain is set, this is a standalone page — don't handle nav internally
+  const isStandalone = !!overrideDomain;
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (isStandalone) return; // let BaseLayout global nav handle it
+
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if ((e.target as HTMLElement).closest('.timeline-host')) return;
@@ -54,7 +61,6 @@ export default function TimelineSlideshow({ initialSlide = 0 }: TimelineSlidesho
       if (e.key === 'ArrowRight') {
         e.preventDefault();
         if (slideIndex >= SLIDES.length - 1) {
-          // Last slide → go to presentation/reconstruction
           window.location.href = '/presentation/reconstruction';
         } else {
           setSlideIndex(slideIndex + 1);
@@ -64,14 +70,13 @@ export default function TimelineSlideshow({ initialSlide = 0 }: TimelineSlidesho
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         if (slideIndex <= 0) {
-          // First slide → go back to alerts
           window.location.href = '/alerts';
         } else {
           setSlideIndex(slideIndex - 1);
         }
       }
     },
-    [slideIndex]
+    [slideIndex, isStandalone]
   );
 
   useEffect(() => {
@@ -81,18 +86,19 @@ export default function TimelineSlideshow({ initialSlide = 0 }: TimelineSlidesho
 
   // Update URL to reflect current slide (without page reload)
   useEffect(() => {
+    if (isStandalone) return;
     const paths = ['/timeline', '/timeline/focus-1', '/timeline/focus-2', '/timeline/focus-3'];
     const path = paths[slideIndex] ?? '/timeline';
     if (window.location.pathname !== path) {
       window.history.replaceState(null, '', path);
     }
-  }, [slideIndex]);
+  }, [slideIndex, isStandalone]);
 
   const slide = SLIDES[slideIndex];
 
   return (
     <TimelineWorkspace
-      focusDomain={slide.focusDomain}
+      focusDomain={overrideDomain ?? slide.focusDomain}
       highlightedIds={slide.highlightedIds}
       displayOptions={slide.displayOptions}
     />

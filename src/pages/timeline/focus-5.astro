@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TimelineWorkspace from '../../components/timeline/TimelineWorkspace.tsx';
+---
+
+<BaseLayout title="Timeline Focus 5 | Evia Wildfire Timeline">
+  <nav class="timeline-nav" aria-label="Section navigation">
+    <a href="/timeline" class="timeline-nav-tab is-active">_Planning &amp; Policy</a>
+    <a href="#" class="timeline-nav-tab">_Forestry Service</a>
+    <a href="/home" class="timeline-nav-tab">_Hybrid Schemes</a>
+  </nav>
+  <TimelineWorkspace client:load initialDomain={['1970-01-01', '2026-03-18']} />
+
+  <script is:inline>document.body.dataset.navLeft = '/timeline/focus-4';</script>
+</BaseLayout>
